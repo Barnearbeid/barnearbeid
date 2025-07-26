@@ -7,10 +7,10 @@ const FAQ = () => {
   const faqItems = [
     {
       question: "Hvordan fungerer plattformen?",
-      answer: "YOD kobler unge som vil tjene penger og få arbeidserfaring med travle voksne og eldre som ønsker hjelp i hverdagen. Du kan enkelt opprette en profil og legge ut eller søke på oppdrag. Vi begynner med følgende kategorier: husarbeid, hagearbeid, dyrepass, bærehjelp, håndverk og eldreomsorg."
+      answer: "Barnearbeid kobler unge som vil tjene penger og få arbeidserfaring med travle voksne og eldre som ønsker hjelp i hverdagen. Du kan enkelt opprette en profil og legge ut eller søke på oppdrag. Vi begynner med følgende kategorier: husarbeid, hagearbeid, dyrepass, bærehjelp, håndverk og eldreomsorg."
     },
     {
-      question: "Når lanserer YOD i mitt område?",
+      question: "Når lanserer Barnearbeid i mitt område?",
       answer: "Vi jobber med å ekspandere så fort som mulig. Hvis du registrerer interesse øker det sjansen for at vi lanserer raskere i ditt område og reserverer deg tilgang slik at du blir først til å bruke appen i nabolaget ditt."
     },
     {
@@ -19,7 +19,7 @@ const FAQ = () => {
     },
     {
       question: "Hvordan fungerer skatt og lignende?",
-      answer: "YOD samarbeider med DLA Piper - Nordens største advokatfirma - for å gjøre alt juridisk rundt småjobber enklest mulig. Nå får du oversikt på yod.work/legal/skatteinfo. Snart vil appen automatisk holde oversikt over hvor mye du kan tjene/betale skattefritt og varsle deg før du når grenser. Om du passerer, vil vi tilby alternativer som forenkler og automatiserer skatt og rapportering."
+      answer: "Barnearbeid samarbeider med DLA Piper - Nordens største advokatfirma - for å gjøre alt juridisk rundt småjobber enklest mulig. Nå får du oversikt på barnearbeid.no/legal/skatteinfo. Snart vil appen automatisk holde oversikt over hvor mye du kan tjene/betale skattefritt og varsle deg før du når grenser. Om du passerer, vil vi tilby alternativer som forenkler og automatiserer skatt og rapportering."
     },
     {
       question: "Hvordan sørger dere for sikkerhet og kvalitet?",

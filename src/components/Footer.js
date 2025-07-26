@@ -12,7 +12,7 @@ const Footer = () => {
             <p className="text-gray-300 mb-4">
               Tordenskiolds gate 2, 0160, Oslo
             </p>
-            <p className="text-gray-300 mb-2">Youth on Demand AS</p>
+            <p className="text-gray-300 mb-2">Barnearbeid AS</p>
             <p className="text-gray-300 mb-4">Org.nr 934557417</p>
             <p className="text-gray-400 text-sm">
               Utviklet i samarbeid med Nordens største advokatfirma
@@ -43,7 +43,7 @@ const Footer = () => {
             <h4 className="text-lg font-semibold mb-4">Følg oss</h4>
             <div className="space-y-2">
               <a 
-                href="https://www.linkedin.com/company/youth-on-demand" 
+                href="https://www.linkedin.com/company/barnearbeid" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="block text-gray-300 hover:text-white transition-colors"
@@ -51,7 +51,7 @@ const Footer = () => {
                 LinkedIn
               </a>
               <a 
-                href="https://www.instagram.com/youthondemand" 
+                href="https://www.instagram.com/barnearbeid" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="block text-gray-300 hover:text-white transition-colors"
@@ -59,7 +59,7 @@ const Footer = () => {
                 Instagram
               </a>
               <a 
-                href="https://www.facebook.com/youthondemand" 
+                href="https://www.facebook.com/barnearbeid" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="block text-gray-300 hover:text-white transition-colors"
@@ -67,7 +67,7 @@ const Footer = () => {
                 Facebook
               </a>
               <a 
-                href="https://www.tiktok.com/@youthondemand" 
+                href="https://www.tiktok.com/@barnearbeid" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="block text-gray-300 hover:text-white transition-colors"
@@ -80,7 +80,7 @@ const Footer = () => {
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
           <p className="text-gray-400 text-sm">
-            © 2024 Youth on Demand AS. Alle rettigheter forbeholdt.
+            © 2024 Barnearbeid AS. Alle rettigheter forbeholdt.
           </p>
         </div>
       </div>

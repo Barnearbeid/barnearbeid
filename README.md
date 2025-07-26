@@ -1,6 +1,6 @@
-# Barnearbeid - Youth On-Demand Platform
+# Barnearbeid - Småjobber i ditt nærmiljø
 
-A modern web application that connects young people with customers looking for various services. Built with React, Tailwind CSS, and modern web technologies.
+A modern web application that connects young people with customers looking for various services in their local area. Built with React, Tailwind CSS, and modern web technologies.
 
 ## 🚀 Features
 
@@ -141,6 +141,6 @@ This project is licensed under the MIT License.
 
 ## 🙏 Acknowledgments
 
-- Inspired by [YOD.work](https://www.yod.work/no)
 - Built with modern web technologies
 - Designed for youth empowerment and entrepreneurship
+- Connecting local communities through meaningful work opportunities

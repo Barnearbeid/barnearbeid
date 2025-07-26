@@ -92,11 +92,11 @@ const Home = () => {
             
             {/* App Store Buttons */}
             <div className="flex justify-center space-x-4">
-              <a href="https://play.google.com/store/apps/details?id=com.yod.app" target="_blank" rel="noopener noreferrer" className="bg-black text-white px-6 py-3 rounded-lg flex items-center space-x-2 hover:bg-gray-800 transition-colors">
+              <a href="https://play.google.com/store/apps/details?id=com.barnearbeid.app" target="_blank" rel="noopener noreferrer" className="bg-black text-white px-6 py-3 rounded-lg flex items-center space-x-2 hover:bg-gray-800 transition-colors">
                 <span>📱</span>
                 <span>Google Play</span>
               </a>
-              <a href="https://apps.apple.com/app/youth-on-demand/id123456789" target="_blank" rel="noopener noreferrer" className="bg-black text-white px-6 py-3 rounded-lg flex items-center space-x-2 hover:bg-gray-800 transition-colors">
+              <a href="https://apps.apple.com/app/barnearbeid/id123456789" target="_blank" rel="noopener noreferrer" className="bg-black text-white px-6 py-3 rounded-lg flex items-center space-x-2 hover:bg-gray-800 transition-colors">
                 <span>📱</span>
                 <span>App Store</span>
               </a>
@@ -147,7 +147,7 @@ const Home = () => {
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center mb-4">Kort om tjenesten</h2>
-          <h3 className="text-xl text-center text-gray-600 mb-12">Hvorfor bruke Youth on Demand?</h3>
+          <h3 className="text-xl text-center text-gray-600 mb-12">Hvorfor bruke Barnearbeid?</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <div key={index} className="card text-center">
@@ -232,7 +232,7 @@ const Home = () => {
             Meld inn ditt område!
           </h2>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            For øyeblikket er appen kun tilgjengelig på Ullern og Vestre Aker, men vi har mål om å lansere i flere nye områder i år. Foreslå ditt område! Jo flere som melder seg inn i ditt område jo raskere vil vi tilby vår plattform hos deg.
+            For øyeblikket er appen kun tilgjengelig på Ullern og Vestre Aker, men vi har mål om å lansere i flere nye områder i år. Foreslå ditt område! Jo flere som melder seg inn i ditt område jo raskere vil vi tilby Barnearbeid-plattformen hos deg.
           </p>
           <button className="btn-secondary text-lg px-8 py-3">
             Meld interesse

@@ -1,9 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, User, Plus, Menu, X } from 'lucide-react';
+import { Search, User, Plus, Menu, X, LogOut } from 'lucide-react';
+import { auth } from '../firebase';
+import { signOut } from 'firebase/auth';
+import Auth from './Auth';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [showAuth, setShowAuth] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      setUser(user);
+    });
+    return unsubscribe;
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
 
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200">
@@ -21,6 +41,9 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-8">
             <Link to="/services" className="text-gray-600 hover:text-gray-900 transition-colors">
               Finn tjenester
+            </Link>
+            <Link to="/jobs" className="text-gray-600 hover:text-gray-900 transition-colors">
+              Ledige jobber
             </Link>
             <Link to="/create-service" className="text-gray-600 hover:text-gray-900 transition-colors">
               Tilby tjeneste
@@ -41,13 +64,31 @@ const Navbar = () => {
 
           {/* User Menu */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link to="/create-service" className="btn-secondary flex items-center space-x-2">
-              <Plus className="w-4 h-4" />
-              <span>Opprett tjeneste</span>
-            </Link>
-            <Link to="/profile" className="p-2 text-gray-600 hover:text-gray-900 transition-colors">
-              <User className="w-5 h-5" />
-            </Link>
+            {user ? (
+              <>
+                <Link to="/create-job" className="btn-secondary flex items-center space-x-2">
+                  <Plus className="w-4 h-4" />
+                  <span>Post jobb</span>
+                </Link>
+                <Link to="/profile" className="p-2 text-gray-600 hover:text-gray-900 transition-colors">
+                  <User className="w-5 h-5" />
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+                  title="Logg ut"
+                >
+                  <LogOut className="w-5 h-5" />
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => setShowAuth(true)}
+                className="btn-primary"
+              >
+                Logg inn
+              </button>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -72,20 +113,43 @@ const Navbar = () => {
               >
                 Finn tjenester
               </Link>
-              <Link
-                to="/create-service"
-                className="block text-gray-600 hover:text-gray-900"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Tilby tjeneste
-              </Link>
-              <Link
-                to="/profile"
-                className="block text-gray-600 hover:text-gray-900"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Profil
-              </Link>
+              {user ? (
+                <>
+                  <Link
+                    to="/create-service"
+                    className="block text-gray-600 hover:text-gray-900"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Tilby tjeneste
+                  </Link>
+                  <Link
+                    to="/profile"
+                    className="block text-gray-600 hover:text-gray-900"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Profil
+                  </Link>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsMenuOpen(false);
+                    }}
+                    className="block w-full text-left text-gray-600 hover:text-gray-900"
+                  >
+                    Logg ut
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => {
+                    setShowAuth(true);
+                    setIsMenuOpen(false);
+                  }}
+                  className="block w-full text-left text-gray-600 hover:text-gray-900"
+                >
+                  Logg inn
+                </button>
+              )}
               <div className="pt-4">
                 <input
                   type="text"
@@ -97,6 +161,9 @@ const Navbar = () => {
           </div>
         )}
       </div>
+      
+      {/* Auth Modal */}
+      {showAuth && <Auth onClose={() => setShowAuth(false)} />}
     </nav>
   );
 };

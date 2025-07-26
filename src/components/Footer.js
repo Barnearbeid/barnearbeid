@@ -10,12 +10,12 @@ const Footer = () => {
           <div className="lg:col-span-2">
             <h3 className="text-xl font-semibold mb-4">Kontakt oss</h3>
             <p className="text-gray-300 mb-4">
-              Tordenskiolds gate 2, 0160, Oslo
+              Oslo, Norge
             </p>
             <p className="text-gray-300 mb-2">Barnearbeid AS</p>
-            <p className="text-gray-300 mb-4">Org.nr 934557417</p>
+            <p className="text-gray-300 mb-4">Org.nr 123456789</p>
             <p className="text-gray-400 text-sm">
-              Utviklet i samarbeid med Nordens største advokatfirma
+              Koble unge med lokale jobbmuligheter
             </p>
           </div>
 

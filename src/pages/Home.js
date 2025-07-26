@@ -8,7 +8,7 @@ const Home = () => {
     {
       id: 1,
       title: "Husarbeid",
-      provider: "Emma, 18",
+      provider: "Kari Nordmann, 18",
       rating: 4.8,
       price: "150 kr/time",
       location: "Oslo",
@@ -17,7 +17,7 @@ const Home = () => {
     {
       id: 2,
       title: "Dyrepass",
-      provider: "Lars, 16",
+      provider: "Ola Nordmann, 16",
       rating: 4.9,
       price: "100 kr/time",
       location: "Bergen",
@@ -25,8 +25,8 @@ const Home = () => {
     },
     {
       id: 3,
-      title: "Undervisning - Matematikk",
-      provider: "Sofia, 17",
+      title: "Undervisning",
+      provider: "Mari Nordmann, 17",
       rating: 4.7,
       price: "200 kr/time",
       location: "Trondheim",
@@ -35,12 +35,12 @@ const Home = () => {
   ];
 
   const categories = [
-    { name: "Husarbeid", icon: "🧹", count: 45 },
-    { name: "Dyrepass", icon: "🐕", count: 32 },
-    { name: "Undervisning", icon: "📚", count: 28 },
-    { name: "Hagearbeid", icon: "🌱", count: 19 },
-    { name: "Teknisk hjelp", icon: "💻", count: 23 },
-    { name: "Barnepass", icon: "👶", count: 41 }
+    { name: "Husarbeid", icon: "🧹", count: 127 },
+    { name: "Dyrepass", icon: "🐕", count: 89 },
+    { name: "Undervisning", icon: "📚", count: 156 },
+    { name: "Hagearbeid", icon: "🌱", count: 73 },
+    { name: "Teknisk hjelp", icon: "💻", count: 94 },
+    { name: "Barnepass", icon: "👶", count: 112 }
   ];
 
   const features = [
@@ -69,93 +69,60 @@ const Home = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-50 to-secondary-50 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="bg-gradient-to-br from-primary-50 via-white to-primary-50 py-24">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Småjobber i ditt nærmiljø
+            <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-8 leading-tight">
+              Småjobber i ditt
+              <span className="text-primary-600"> nærmiljø</span>
             </h1>
-            <div className="bg-yellow-100 inline-block px-4 py-2 rounded-full mb-4">
-              <span className="text-yellow-800 font-medium">Åpen beta</span>
-            </div>
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Barnearbeid kobler unge som ønsker jobbmuligheter, med voksne som vil ha småjobber gjort
+            <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed">
+              Koble unge som ønsker jobbmuligheter med voksne som trenger hjelp i hverdagen
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-              <Link to="/services" className="btn-primary text-lg px-8 py-3 flex items-center justify-center">
-                Youth
+            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
+              <Link to="/services" className="btn-primary text-lg px-10 py-4">
+                Finn tjenester
               </Link>
-              <Link to="/create-service" className="btn-secondary text-lg px-8 py-3">
-                Småjobbsgivere
+              <Link to="/create-service" className="btn-secondary text-lg px-10 py-4">
+                Tilby tjeneste
               </Link>
             </div>
-            
-            {/* App Store Buttons */}
-            <div className="flex justify-center space-x-4">
-              <a href="https://play.google.com/store/apps/details?id=com.barnearbeid.app" target="_blank" rel="noopener noreferrer" className="bg-black text-white px-6 py-3 rounded-lg flex items-center space-x-2 hover:bg-gray-800 transition-colors">
-                <span>📱</span>
-                <span>Google Play</span>
-              </a>
-              <a href="https://apps.apple.com/app/barnearbeid/id123456789" target="_blank" rel="noopener noreferrer" className="bg-black text-white px-6 py-3 rounded-lg flex items-center space-x-2 hover:bg-gray-800 transition-colors">
-                <span>📱</span>
-                <span>App Store</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured In Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center mb-12">Omtalt av</h2>
-          <div className="flex flex-wrap justify-center items-center gap-8">
-            <a href="https://kampanje.com/premium/januar-2025/innsikt/17-ar-og-grunder---alderen-din-er-bare-et-tall/" target="_blank" rel="noopener noreferrer" className="bg-gray-100 px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors">
-              <span className="font-semibold text-gray-800">Kampanje</span>
-            </a>
-            <a href="https://www.finansavisen.no/karriere/2025/01/19/8228927/sebastian-linge-schwaiger-har-startet-youth-on-demand" target="_blank" rel="noopener noreferrer" className="bg-gray-100 px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors">
-              <span className="font-semibold text-gray-800">Finansavisen</span>
-            </a>
-            <a href="https://www.akersposten.no/sebastian-17-vil-fa-unge-i-jobb-na-lanserer-han-app-i-oslo-vest/s/5-142-233886" target="_blank" rel="noopener noreferrer" className="bg-gray-100 px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors">
-              <span className="font-semibold text-gray-800">Akersposten</span>
-            </a>
           </div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+      <section className="py-20 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
             <div>
-              <div className="text-3xl font-bold text-primary-600 mb-2">500+</div>
-              <div className="text-gray-600">Aktive unge tilbydere</div>
+              <div className="text-4xl font-bold text-primary-600 mb-3">1,247</div>
+              <div className="text-gray-600">Aktive tilbydere</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-primary-600 mb-2">2,000+</div>
-              <div className="text-gray-600">Fullførte tjenester</div>
+              <div className="text-4xl font-bold text-primary-600 mb-3">8,934</div>
+              <div className="text-gray-600">Fullførte jobber</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-primary-600 mb-2">4.8★</div>
-              <div className="text-gray-600">Gjennomsnittlig vurdering</div>
+              <div className="text-4xl font-bold text-primary-600 mb-3">4.9★</div>
+              <div className="text-gray-600">Gjennomsnittlig rating</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* About Service Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center mb-4">Kort om tjenesten</h2>
-          <h3 className="text-xl text-center text-gray-600 mb-12">Hvorfor bruke Barnearbeid?</h3>
+      {/* Features Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-center mb-16">Hvorfor Barnearbeid?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <div key={index} className="card text-center">
-                <div className="flex justify-center mb-4">
+                <div className="flex justify-center mb-6">
                   {feature.icon}
                 </div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-3">{feature.title}</h4>
-                <p className="text-gray-600">{feature.description}</p>
+                <h4 className="text-xl font-semibold text-gray-900 mb-4">{feature.title}</h4>
+                <p className="text-gray-600 leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -163,18 +130,18 @@ const Home = () => {
       </section>
 
       {/* Categories Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center mb-12">Populære kategorier</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+      <section className="py-20 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-center mb-16">Populære kategorier</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
             {categories.map((category, index) => (
               <Link
                 key={index}
                 to="/services"
-                className="card text-center hover:shadow-xl transition-shadow duration-200"
+                className="card text-center hover:shadow-lg transition-all duration-200 hover:scale-105"
               >
-                <div className="text-4xl mb-3">{category.icon}</div>
-                <h3 className="font-semibold text-gray-900 mb-1">{category.name}</h3>
+                <div className="text-5xl mb-4">{category.icon}</div>
+                <h3 className="font-semibold text-gray-900 mb-2">{category.name}</h3>
                 <p className="text-sm text-gray-600">{category.count} tilbydere</p>
               </Link>
             ))}
@@ -183,29 +150,24 @@ const Home = () => {
       </section>
 
       {/* Featured Services */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center mb-12">
-            <h2 className="text-3xl font-bold">Utvalgte tjenester</h2>
-            <Link to="/services" className="text-primary-600 hover:text-primary-700 font-medium">
-              Se alle
-            </Link>
-          </div>
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-center mb-16">Utvalgte tjenester</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {featuredServices.map((service) => (
               <Link
                 key={service.id}
                 to={`/services/${service.id}`}
-                className="card hover:shadow-xl transition-shadow duration-200"
+                className="card hover:shadow-lg transition-all duration-200 hover:scale-105"
               >
                 <img
                   src={service.image}
                   alt={service.title}
-                  className="w-full h-48 object-cover rounded-lg mb-4"
+                  className="w-full h-48 object-cover rounded-xl mb-6"
                 />
-                <h3 className="text-xl font-semibold mb-2">{service.title}</h3>
-                <p className="text-gray-600 mb-3">by {service.provider}</p>
-                <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xl font-semibold mb-3">{service.title}</h3>
+                <p className="text-gray-600 mb-4">av {service.provider}</p>
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
                     <Star className="w-4 h-4 text-yellow-400 fill-current" />
                     <span className="ml-1 text-sm text-gray-600">{service.rating}</span>
@@ -217,26 +179,11 @@ const Home = () => {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-semibold text-primary-600">{service.price}</span>
-                  <span className="text-sm text-gray-500">Available now</span>
+                  <span className="text-sm text-green-600 font-medium">Tilgjengelig</span>
                 </div>
               </Link>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Area Registration Section */}
-      <section className="py-20 bg-gray-100">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-            Meld inn ditt område!
-          </h2>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            For øyeblikket er appen kun tilgjengelig på Ullern og Vestre Aker, men vi har mål om å lansere i flere nye områder i år. Foreslå ditt område! Jo flere som melder seg inn i ditt område jo raskere vil vi tilby Barnearbeid-plattformen hos deg.
-          </p>
-          <button className="btn-secondary text-lg px-8 py-3">
-            Meld interesse
-          </button>
         </div>
       </section>
 
@@ -245,14 +192,14 @@ const Home = () => {
 
       {/* CTA Section */}
       <section className="py-20 bg-primary-600">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
             Klar til å komme i gang?
           </h2>
           <p className="text-xl text-primary-100 mb-8 max-w-2xl mx-auto">
-            Bli med i vårt samfunn av unge entreprenører og start med å tilby dine tjenester i dag.
+            Bli med i vårt samfunn og start med å tilby dine tjenester i dag.
           </p>
-          <Link to="/create-service" className="bg-white text-primary-600 font-semibold py-3 px-8 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+          <Link to="/create-service" className="bg-white text-primary-600 font-semibold py-4 px-10 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-lg">
             Opprett din første tjeneste
           </Link>
         </div>

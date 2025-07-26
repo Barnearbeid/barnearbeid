@@ -53,7 +53,7 @@ const Home = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
               <Link to="/services" className="btn-primary text-lg px-10 py-4">
-                Finn tjenester
+                Finn jobber
               </Link>
               <Link to="/create-service" className="btn-secondary text-lg px-10 py-4">
                 Tilby tjeneste

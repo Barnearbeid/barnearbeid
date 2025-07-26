@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Edit, Star, Calendar, MapPin, Clock, Settings, User, Bell, CreditCard } from 'lucide-react';
+import { Edit, Star, Calendar, MapPin, Clock, Settings, User, Bell, CreditCard, MessageCircle } from 'lucide-react';
 import { auth, db } from '../firebase';
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import EditProfile from '../components/EditProfile';
+import Messaging from '../components/Messaging';
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -11,11 +12,15 @@ const Profile = () => {
   const [userJobs, setUserJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [showMessaging, setShowMessaging] = useState(false);
+  const [selectedChat, setSelectedChat] = useState(null);
 
   useEffect(() => {
     if (auth.currentUser) {
       fetchUserData();
       fetchUserJobs();
+      fetchMessages();
     }
   }, []);
 
@@ -50,11 +55,86 @@ const Profile = () => {
     }
   };
 
+  const fetchMessages = () => {
+    if (!auth.currentUser) return;
+
+    // Listen for messages where current user is either sender or receiver
+    const q1 = query(
+      collection(db, 'messages'),
+      where('fromUserId', '==', auth.currentUser.uid)
+    );
+
+    const q2 = query(
+      collection(db, 'messages'),
+      where('toUserId', '==', auth.currentUser.uid)
+    );
+
+    const unsubscribe1 = onSnapshot(q1, (snapshot) => {
+      const sentMessages = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        type: 'sent'
+      }));
+      
+      // Combine with received messages
+      const allMessages = [...sentMessages, ...messages.filter(m => m.type === 'received')];
+      setMessages(allMessages);
+    });
+
+    const unsubscribe2 = onSnapshot(q2, (snapshot) => {
+      const receivedMessages = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        type: 'received'
+      }));
+      
+      // Combine with sent messages
+      const allMessages = [...messages.filter(m => m.type === 'sent'), ...receivedMessages];
+      setMessages(allMessages);
+    });
+
+    return () => {
+      unsubscribe1();
+      unsubscribe2();
+    };
+  };
+
+  const getChatPartners = () => {
+    const chatPartners = new Map();
+    
+    messages.forEach(message => {
+      const partnerId = message.fromUserId === auth.currentUser.uid 
+        ? message.toUserId 
+        : message.fromUserId;
+      
+      if (!chatPartners.has(partnerId)) {
+        chatPartners.set(partnerId, {
+          userId: partnerId,
+          lastMessage: message.message,
+          lastMessageTime: message.createdAt,
+          unreadCount: 0
+        });
+      } else {
+        const chat = chatPartners.get(partnerId);
+        if (message.createdAt > chat.lastMessageTime) {
+          chat.lastMessage = message.message;
+          chat.lastMessageTime = message.createdAt;
+        }
+        if (message.toUserId === auth.currentUser.uid && !message.read) {
+          chat.unreadCount++;
+        }
+      }
+    });
+    
+    return Array.from(chatPartners.values()).sort((a, b) => b.lastMessageTime - a.lastMessageTime);
+  };
+
   const recentBookings = [];
 
   const tabs = [
     { id: 'overview', name: 'Overview', icon: User },
     { id: 'services', name: 'My Services', icon: Settings },
+    { id: 'messages', name: 'Messages', icon: MessageCircle },
     { id: 'bookings', name: 'Bookings', icon: Calendar },
     { id: 'earnings', name: 'Earnings', icon: CreditCard }
   ];
@@ -152,7 +232,7 @@ const Profile = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Mine jobber</h3>
-        <Link to="/create-job" className="btn-secondary">
+        <Link to="/create-service" className="btn-secondary">
           Post ny jobb
         </Link>
       </div>
@@ -162,7 +242,7 @@ const Profile = () => {
           <div className="text-6xl mb-4">📝</div>
           <h3 className="text-xl font-semibold text-gray-900 mb-2">Ingen jobber ennå</h3>
           <p className="text-gray-600 mb-6">Du har ikke postet noen jobber ennå.</p>
-          <Link to="/create-job" className="btn-primary">
+          <Link to="/create-service" className="btn-primary">
             Post din første jobb
           </Link>
         </div>
@@ -199,7 +279,7 @@ const Profile = () => {
                   }
                 </span>
                 <Link 
-                  to={`/jobs/${job.id}`}
+                  to={`/services/${job.id}`}
                   className="text-primary-600 hover:text-primary-700 text-sm font-medium"
                 >
                   Se detaljer
@@ -211,6 +291,66 @@ const Profile = () => {
       )}
     </div>
   );
+
+  const renderMessages = () => {
+    const chatPartners = getChatPartners();
+    
+    return (
+      <div className="space-y-6">
+        <h3 className="text-lg font-semibold">Meldinger</h3>
+        
+        {chatPartners.length === 0 ? (
+          <div className="text-center py-12">
+            <MessageCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Ingen meldinger ennå</h3>
+            <p className="text-gray-600">Du har ingen meldinger ennå.</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {chatPartners.map((chat) => (
+              <div
+                key={chat.userId}
+                onClick={() => {
+                  setSelectedChat(chat);
+                  setShowMessaging(true);
+                }}
+                className="card cursor-pointer hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                      <span className="text-primary-600 font-semibold">
+                        {chat.userName?.charAt(0) || 'U'}
+                      </span>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold">{chat.userName || 'Unknown User'}</h4>
+                      <p className="text-sm text-gray-600 truncate max-w-xs">
+                        {chat.lastMessage}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-gray-500">
+                      {chat.lastMessageTime?.toDate ? 
+                        chat.lastMessageTime.toDate().toLocaleDateString('no-NO') : 
+                        'Nylig'
+                      }
+                    </p>
+                    {chat.unreadCount > 0 && (
+                      <span className="inline-block bg-primary-600 text-white text-xs rounded-full px-2 py-1 mt-1">
+                        {chat.unreadCount}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const renderBookings = () => (
     <div className="space-y-6">
@@ -378,6 +518,7 @@ const Profile = () => {
           <div className="p-6">
             {activeTab === 'overview' && renderOverview()}
             {activeTab === 'services' && renderServices()}
+            {activeTab === 'messages' && renderMessages()}
             {activeTab === 'bookings' && renderBookings()}
             {activeTab === 'earnings' && renderEarnings()}
           </div>
@@ -391,6 +532,18 @@ const Profile = () => {
           onUpdate={() => {
             fetchUserData();
             setShowEditProfile(false);
+          }}
+        />
+      )}
+
+      {/* Messaging Modal */}
+      {showMessaging && selectedChat && (
+        <Messaging
+          targetUserId={selectedChat.userId}
+          targetUserName={selectedChat.userName || 'Unknown User'}
+          onClose={() => {
+            setShowMessaging(false);
+            setSelectedChat(null);
           }}
         />
       )}

@@ -1,21 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, User, Plus, Menu, X, LogOut } from 'lucide-react';
-import { auth } from '../firebase';
+import { Search, User, Plus, Menu, X, LogOut, MessageCircle } from 'lucide-react';
+import { auth, db } from '../firebase';
 import { signOut } from 'firebase/auth';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import Auth from './Auth';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [showAuth, setShowAuth] = useState(false);
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       setUser(user);
+      if (user) {
+        fetchUnreadMessages(user.uid);
+      } else {
+        setUnreadMessages(0);
+      }
     });
     return unsubscribe;
   }, []);
+
+  const fetchUnreadMessages = (userId) => {
+    const q = query(
+      collection(db, 'messages'),
+      where('toUserId', '==', userId),
+      where('read', '==', false)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setUnreadMessages(snapshot.docs.length);
+    });
+
+    return unsubscribe;
+  };
 
   const handleLogout = async () => {
     try {
@@ -40,14 +61,13 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <Link to="/services" className="text-gray-600 hover:text-gray-900 transition-colors">
-              Finn tjenester
+              Finn jobber
             </Link>
-            <Link to="/jobs" className="text-gray-600 hover:text-gray-900 transition-colors">
-              Ledige jobber
-            </Link>
-            <Link to="/create-service" className="text-gray-600 hover:text-gray-900 transition-colors">
-              Tilby tjeneste
-            </Link>
+            {!user && (
+              <Link to="/create-service" className="text-gray-600 hover:text-gray-900 transition-colors">
+                Tilby tjeneste
+              </Link>
+            )}
           </div>
 
           {/* Search Bar */}
@@ -56,7 +76,7 @@ const Navbar = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="Søk etter tjenester..."
+                placeholder="Søk etter jobber..."
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
@@ -66,12 +86,17 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
               <>
-                <Link to="/create-job" className="btn-secondary flex items-center space-x-2">
+                <Link to="/create-service" className="btn-secondary flex items-center space-x-2">
                   <Plus className="w-4 h-4" />
                   <span>Post jobb</span>
                 </Link>
-                <Link to="/profile" className="p-2 text-gray-600 hover:text-gray-900 transition-colors">
+                <Link to="/profile" className="p-2 text-gray-600 hover:text-gray-900 transition-colors relative">
                   <User className="w-5 h-5" />
+                  {unreadMessages > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {unreadMessages > 9 ? '9+' : unreadMessages}
+                    </span>
+                  )}
                 </Link>
                 <button
                   onClick={handleLogout}
@@ -102,51 +127,57 @@ const Navbar = () => {
           </div>
         </div>
 
-                  {/* Mobile Navigation */}
-          {isMenuOpen && (
-            <div className="md:hidden py-4 border-t border-gray-200">
-              <div className="space-y-4">
-                <Link
-                  to="/services"
-                  className="block text-gray-600 hover:text-gray-900"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Finn tjenester
-                </Link>
-                <Link
-                  to="/jobs"
-                  className="block text-gray-600 hover:text-gray-900"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Ledige jobber
-                </Link>
-                {user ? (
-                  <>
-                    <Link
-                      to="/create-job"
-                      className="block text-gray-600 hover:text-gray-900"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Post jobb
-                    </Link>
-                    <Link
-                      to="/profile"
-                      className="block text-gray-600 hover:text-gray-900"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Profil
-                    </Link>
-                    <button
-                      onClick={() => {
-                        handleLogout();
-                        setIsMenuOpen(false);
-                      }}
-                      className="block w-full text-left text-gray-600 hover:text-gray-900"
-                    >
-                      Logg ut
-                    </button>
-                  </>
-                ) : (
+        {/* Mobile Navigation */}
+        {isMenuOpen && (
+          <div className="md:hidden py-4 border-t border-gray-200">
+            <div className="space-y-4">
+              <Link
+                to="/services"
+                className="block text-gray-600 hover:text-gray-900"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Finn jobber
+              </Link>
+              {user ? (
+                <>
+                  <Link
+                    to="/create-service"
+                    className="block text-gray-600 hover:text-gray-900"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Post jobb
+                  </Link>
+                  <Link
+                    to="/profile"
+                    className="block text-gray-600 hover:text-gray-900 flex items-center justify-between"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <span>Profil</span>
+                    {unreadMessages > 0 && (
+                      <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {unreadMessages > 9 ? '9+' : unreadMessages}
+                      </span>
+                    )}
+                  </Link>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsMenuOpen(false);
+                    }}
+                    className="block w-full text-left text-gray-600 hover:text-gray-900"
+                  >
+                    Logg ut
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/create-service"
+                    className="block text-gray-600 hover:text-gray-900"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Tilby tjeneste
+                  </Link>
                   <button
                     onClick={() => {
                       setShowAuth(true);
@@ -156,17 +187,18 @@ const Navbar = () => {
                   >
                     Logg inn
                   </button>
-                )}
-                <div className="pt-4">
-                  <input
-                    type="text"
-                    placeholder="Søk etter jobber..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  />
-                </div>
+                </>
+              )}
+              <div className="pt-4">
+                <input
+                  type="text"
+                  placeholder="Søk etter jobber..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
               </div>
             </div>
-          )}
+          </div>
+        )}
       </div>
       
       {/* Auth Modal */}

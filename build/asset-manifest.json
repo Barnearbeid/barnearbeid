@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/barnearbeid/static/css/main.da30508b.css",
+    "main.js": "/barnearbeid/static/js/main.0fa344ed.js",
+    "index.html": "/barnearbeid/index.html",
+    "main.da30508b.css.map": "/barnearbeid/static/css/main.da30508b.css.map",
+    "main.0fa344ed.js.map": "/barnearbeid/static/js/main.0fa344ed.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.da30508b.css",
+    "static/js/main.0fa344ed.js"
+  ]
+}

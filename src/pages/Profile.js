@@ -1,72 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Edit, Star, Calendar, MapPin, Clock, Settings, User, Bell, CreditCard } from 'lucide-react';
+import { auth, db } from '../firebase';
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import EditProfile from '../components/EditProfile';
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [user, setUser] = useState(null);
+  const [userJobs, setUserJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showEditProfile, setShowEditProfile] = useState(false);
 
-  // Mock user data
-  const user = {
-    name: "Emma Andersen",
-    age: 18,
-    location: "Oslo",
-    rating: 4.8,
-    totalReviews: 24,
-    totalEarnings: "12,450 kr",
-    completedJobs: 45,
-    memberSince: "2023"
+  useEffect(() => {
+    if (auth.currentUser) {
+      fetchUserData();
+      fetchUserJobs();
+    }
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        setUser({
+          ...userData,
+          memberSince: userData.createdAt?.toDate?.()?.getFullYear() || new Date().getFullYear()
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const userServices = [
-    {
-      id: 1,
-      title: "House Cleaning",
-      price: "150 kr/hour",
-      status: "active",
-      bookings: 12,
-      rating: 4.8,
-      image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=300&fit=crop"
-    },
-    {
-      id: 2,
-      title: "Window Cleaning",
-      price: "200 kr/hour",
-      status: "active",
-      bookings: 8,
-      rating: 4.9,
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop"
+  const fetchUserJobs = async () => {
+    try {
+      const q = query(collection(db, 'jobs'), where('userId', '==', auth.currentUser.uid));
+      const querySnapshot = await getDocs(q);
+      const jobs = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setUserJobs(jobs);
+    } catch (error) {
+      console.error('Error fetching user jobs:', error);
     }
-  ];
+  };
 
-  const recentBookings = [
-    {
-      id: 1,
-      service: "House Cleaning",
-      client: "Maria S.",
-      date: "2024-01-20",
-      time: "14:00",
-      status: "completed",
-      earnings: "300 kr"
-    },
-    {
-      id: 2,
-      service: "Window Cleaning",
-      client: "Johan K.",
-      date: "2024-01-22",
-      time: "10:00",
-      status: "upcoming",
-      earnings: "400 kr"
-    },
-    {
-      id: 3,
-      service: "House Cleaning",
-      client: "Lisa M.",
-      date: "2024-01-18",
-      time: "16:00",
-      status: "completed",
-      earnings: "450 kr"
-    }
-  ];
+  const recentBookings = [];
 
   const tabs = [
     { id: 'overview', name: 'Overview', icon: User },
@@ -94,8 +78,8 @@ const Profile = () => {
               <Calendar className="w-6 h-6 text-primary-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm text-gray-600">Total Jobs</p>
-              <p className="text-2xl font-bold text-gray-900">{user.completedJobs}</p>
+              <p className="text-sm text-gray-600">Posterte jobber</p>
+              <p className="text-2xl font-bold text-gray-900">{userJobs.length}</p>
             </div>
           </div>
         </div>
@@ -106,8 +90,8 @@ const Profile = () => {
               <CreditCard className="w-6 h-6 text-secondary-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm text-gray-600">Total Earnings</p>
-              <p className="text-2xl font-bold text-gray-900">{user.totalEarnings}</p>
+              <p className="text-sm text-gray-600">Gjennomsnittlig rating</p>
+              <p className="text-2xl font-bold text-gray-900">{user.averageRating || 'N/A'}</p>
             </div>
           </div>
         </div>
@@ -118,8 +102,8 @@ const Profile = () => {
               <Star className="w-6 h-6 text-yellow-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm text-gray-600">Rating</p>
-              <p className="text-2xl font-bold text-gray-900">{user.rating}</p>
+              <p className="text-sm text-gray-600">Totale vurderinger</p>
+              <p className="text-2xl font-bold text-gray-900">{user.totalRatings || 0}</p>
             </div>
           </div>
         </div>
@@ -130,8 +114,8 @@ const Profile = () => {
               <Bell className="w-6 h-6 text-purple-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm text-gray-600">Active Services</p>
-              <p className="text-2xl font-bold text-gray-900">{userServices.length}</p>
+              <p className="text-sm text-gray-600">Bruker type</p>
+              <p className="text-2xl font-bold text-gray-900">{user.userType === 'seeker' ? 'Jobbsøker' : 'Jobbposter'}</p>
             </div>
           </div>
         </div>
@@ -167,42 +151,64 @@ const Profile = () => {
   const renderServices = () => (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">My Services</h3>
-        <Link to="/create-service" className="btn-secondary">
-          Add New Service
+        <h3 className="text-lg font-semibold">Mine jobber</h3>
+        <Link to="/create-job" className="btn-secondary">
+          Post ny jobb
         </Link>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {userServices.map((service) => (
-          <div key={service.id} className="card">
-            <img
-              src={service.image}
-              alt={service.title}
-              className="w-full h-48 object-cover rounded-lg mb-4"
-            />
-            <div className="flex justify-between items-start mb-3">
-              <h4 className="text-xl font-semibold">{service.title}</h4>
-              <span className="text-lg font-semibold text-primary-600">{service.price}</span>
-            </div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                <span className="ml-1 text-sm">{service.rating}</span>
+      {userJobs.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">📝</div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">Ingen jobber ennå</h3>
+          <p className="text-gray-600 mb-6">Du har ikke postet noen jobber ennå.</p>
+          <Link to="/create-job" className="btn-primary">
+            Post din første jobb
+          </Link>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {userJobs.map((job) => (
+            <div key={job.id} className="card">
+              {job.images && job.images.length > 0 && (
+                <img
+                  src={job.images[0]}
+                  alt={job.title}
+                  className="w-full h-48 object-cover rounded-lg mb-4"
+                />
+              )}
+              <div className="flex justify-between items-start mb-3">
+                <h4 className="text-xl font-semibold">{job.title}</h4>
+                <span className="text-lg font-semibold text-primary-600">{job.price} kr</span>
               </div>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(service.status)}`}>
-                {service.status}
-              </span>
+              <p className="text-gray-600 mb-4 line-clamp-2">{job.description}</p>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center text-gray-600">
+                  <MapPin className="w-4 h-4 mr-1" />
+                  <span className="text-sm">{job.location}</span>
+                </div>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(job.status)}`}>
+                  {job.status}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">
+                  {job.createdAt?.toDate ? 
+                    job.createdAt.toDate().toLocaleDateString('no-NO') : 
+                    'Nylig'
+                  }
+                </span>
+                <Link 
+                  to={`/jobs/${job.id}`}
+                  className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+                >
+                  Se detaljer
+                </Link>
+              </div>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">{service.bookings} bookings</span>
-              <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">
-                Edit Service
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 
@@ -288,30 +294,61 @@ const Profile = () => {
     </div>
   );
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Laster profil...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Profil ikke funnet</h2>
+            <p className="text-gray-600">Kunne ikke laste brukerdata.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Profile Header */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-          <div className="flex items-center space-x-6">
-            <div className="w-20 h-20 bg-primary-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-2xl font-bold">{user.name.charAt(0)}</span>
-            </div>
-            <div className="flex-1">
-              <h1 className="text-2xl font-bold text-gray-900">{user.name}</h1>
-              <p className="text-gray-600">{user.age} years old • {user.location}</p>
-              <div className="flex items-center mt-2">
-                <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                <span className="ml-1 font-medium">{user.rating}</span>
-                <span className="ml-1 text-gray-600">({user.totalReviews} reviews)</span>
+        {user && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+            <div className="flex items-center space-x-6">
+              <div className="w-20 h-20 bg-primary-600 rounded-full flex items-center justify-center">
+                <span className="text-white text-2xl font-bold">{user.name?.charAt(0) || 'U'}</span>
               </div>
+              <div className="flex-1">
+                <h1 className="text-2xl font-bold text-gray-900">{user.name}</h1>
+                <p className="text-gray-600">{user.age} år • {user.location}</p>
+                <div className="flex items-center mt-2">
+                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                  <span className="ml-1 font-medium">{user.averageRating || 'N/A'}</span>
+                  <span className="ml-1 text-gray-600">({user.totalRatings || 0} vurderinger)</span>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowEditProfile(true)}
+                className="btn-primary flex items-center space-x-2"
+              >
+                <Edit className="w-4 h-4" />
+                <span>Rediger profil</span>
+              </button>
             </div>
-            <button className="btn-primary flex items-center space-x-2">
-              <Edit className="w-4 h-4" />
-              <span>Edit Profile</span>
-            </button>
           </div>
-        </div>
+        )}
 
         {/* Tabs */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
@@ -346,6 +383,17 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      {showEditProfile && (
+        <EditProfile 
+          onClose={() => setShowEditProfile(false)}
+          onUpdate={() => {
+            fetchUserData();
+            setShowEditProfile(false);
+          }}
+        />
+      )}
     </div>
   );
 };

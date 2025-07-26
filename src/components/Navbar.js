@@ -102,64 +102,71 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-200">
-            <div className="space-y-4">
-              <Link
-                to="/services"
-                className="block text-gray-600 hover:text-gray-900"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Finn tjenester
-              </Link>
-              {user ? (
-                <>
-                  <Link
-                    to="/create-service"
-                    className="block text-gray-600 hover:text-gray-900"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Tilby tjeneste
-                  </Link>
-                  <Link
-                    to="/profile"
-                    className="block text-gray-600 hover:text-gray-900"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Profil
-                  </Link>
+                  {/* Mobile Navigation */}
+          {isMenuOpen && (
+            <div className="md:hidden py-4 border-t border-gray-200">
+              <div className="space-y-4">
+                <Link
+                  to="/services"
+                  className="block text-gray-600 hover:text-gray-900"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Finn tjenester
+                </Link>
+                <Link
+                  to="/jobs"
+                  className="block text-gray-600 hover:text-gray-900"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Ledige jobber
+                </Link>
+                {user ? (
+                  <>
+                    <Link
+                      to="/create-job"
+                      className="block text-gray-600 hover:text-gray-900"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Post jobb
+                    </Link>
+                    <Link
+                      to="/profile"
+                      className="block text-gray-600 hover:text-gray-900"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Profil
+                    </Link>
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setIsMenuOpen(false);
+                      }}
+                      className="block w-full text-left text-gray-600 hover:text-gray-900"
+                    >
+                      Logg ut
+                    </button>
+                  </>
+                ) : (
                   <button
                     onClick={() => {
-                      handleLogout();
+                      setShowAuth(true);
                       setIsMenuOpen(false);
                     }}
                     className="block w-full text-left text-gray-600 hover:text-gray-900"
                   >
-                    Logg ut
+                    Logg inn
                   </button>
-                </>
-              ) : (
-                <button
-                  onClick={() => {
-                    setShowAuth(true);
-                    setIsMenuOpen(false);
-                  }}
-                  className="block w-full text-left text-gray-600 hover:text-gray-900"
-                >
-                  Logg inn
-                </button>
-              )}
-              <div className="pt-4">
-                <input
-                  type="text"
-                  placeholder="Søk etter tjenester..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                />
+                )}
+                <div className="pt-4">
+                  <input
+                    type="text"
+                    placeholder="Søk etter jobber..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
       
       {/* Auth Modal */}

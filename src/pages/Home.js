@@ -4,35 +4,7 @@ import { ArrowRight, Star, Clock, MapPin, CheckCircle, Shield, Users, CreditCard
 import FAQ from '../components/FAQ';
 
 const Home = () => {
-  const featuredServices = [
-    {
-      id: 1,
-      title: "Husarbeid",
-      provider: "Kari Nordmann, 18",
-      rating: 4.8,
-      price: "150 kr/time",
-      location: "Oslo",
-      image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=300&fit=crop"
-    },
-    {
-      id: 2,
-      title: "Dyrepass",
-      provider: "Ola Nordmann, 16",
-      rating: 4.9,
-      price: "100 kr/time",
-      location: "Bergen",
-      image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&h=300&fit=crop"
-    },
-    {
-      id: 3,
-      title: "Undervisning",
-      provider: "Mari Nordmann, 17",
-      rating: 4.7,
-      price: "200 kr/time",
-      location: "Trondheim",
-      image: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&h=300&fit=crop"
-    }
-  ];
+  const featuredServices = [];
 
   const categories = [
     { name: "Husarbeid", icon: "🧹", count: 127 },
@@ -150,42 +122,44 @@ const Home = () => {
       </section>
 
       {/* Featured Services */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center mb-16">Utvalgte tjenester</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredServices.map((service) => (
-              <Link
-                key={service.id}
-                to={`/services/${service.id}`}
-                className="card hover:shadow-lg transition-all duration-200 hover:scale-105"
-              >
-                <img
-                  src={service.image}
-                  alt={service.title}
-                  className="w-full h-48 object-cover rounded-xl mb-6"
-                />
-                <h3 className="text-xl font-semibold mb-3">{service.title}</h3>
-                <p className="text-gray-600 mb-4">av {service.provider}</p>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center">
-                    <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                    <span className="ml-1 text-sm text-gray-600">{service.rating}</span>
+      {featuredServices.length > 0 && (
+        <section className="py-20 bg-gray-50">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl font-bold text-center mb-16">Utvalgte tjenester</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {featuredServices.map((service) => (
+                <Link
+                  key={service.id}
+                  to={`/services/${service.id}`}
+                  className="card hover:shadow-lg transition-all duration-200 hover:scale-105"
+                >
+                  <img
+                    src={service.image}
+                    alt={service.title}
+                    className="w-full h-48 object-cover rounded-xl mb-6"
+                  />
+                  <h3 className="text-xl font-semibold mb-3">{service.title}</h3>
+                  <p className="text-gray-600 mb-4">av {service.provider}</p>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                      <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                      <span className="ml-1 text-sm text-gray-600">{service.rating}</span>
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <MapPin className="w-4 h-4 mr-1" />
+                      {service.location}
+                    </div>
                   </div>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <MapPin className="w-4 h-4 mr-1" />
-                    {service.location}
+                  <div className="flex items-center justify-between">
+                    <span className="text-lg font-semibold text-primary-600">{service.price}</span>
+                    <span className="text-sm text-green-600 font-medium">Tilgjengelig</span>
                   </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-lg font-semibold text-primary-600">{service.price}</span>
-                  <span className="text-sm text-green-600 font-medium">Tilgjengelig</span>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* FAQ Section */}
       <FAQ />

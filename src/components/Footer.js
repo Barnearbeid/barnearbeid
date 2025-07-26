@@ -38,44 +38,44 @@ const Footer = () => {
             </nav>
           </div>
 
-          {/* Social Links */}
-          <div>
-            <h4 className="text-lg font-semibold mb-4">Følg oss</h4>
-            <div className="space-y-2">
-              <a 
-                href="https://www.linkedin.com/company/barnearbeid" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="block text-gray-300 hover:text-white transition-colors"
-              >
-                LinkedIn
-              </a>
-              <a 
-                href="https://www.instagram.com/barnearbeid" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="block text-gray-300 hover:text-white transition-colors"
-              >
-                Instagram
-              </a>
-              <a 
-                href="https://www.facebook.com/barnearbeid" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="block text-gray-300 hover:text-white transition-colors"
-              >
-                Facebook
-              </a>
-              <a 
-                href="https://www.tiktok.com/@barnearbeid" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="block text-gray-300 hover:text-white transition-colors"
-              >
-                TikTok
-              </a>
-            </div>
-          </div>
+                           {/* Social Links */}
+                 <div>
+                   <h4 className="text-lg font-semibold mb-4">Følg oss</h4>
+                   <div className="space-y-2">
+                     <a
+                       href="https://github.com/barnearbeid"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       className="block text-gray-300 hover:text-white transition-colors"
+                     >
+                       GitHub
+                     </a>
+                     <a
+                       href="https://www.instagram.com/barnearbeid"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       className="block text-gray-300 hover:text-white transition-colors"
+                     >
+                       Instagram
+                     </a>
+                     <a
+                       href="https://www.tiktok.com/@barnearbeid"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       className="block text-gray-300 hover:text-white transition-colors"
+                     >
+                       TikTok
+                     </a>
+                     <a
+                       href="https://www.facebook.com/barnearbeid"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       className="block text-gray-300 hover:text-white transition-colors"
+                     >
+                       Facebook
+                     </a>
+                   </div>
+                 </div>
         </div>
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">

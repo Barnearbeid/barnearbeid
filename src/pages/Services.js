@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Filter, Star, MapPin, Clock } from 'lucide-react';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { db } from '../firebase';
 
 const Services = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('rating');
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const categories = [
     { id: 'all', name: 'All Categories' },
@@ -17,91 +21,29 @@ const Services = () => {
     { id: 'babysitting', name: 'Babysitting' }
   ];
 
-  const services = [
-    {
-      id: 1,
-      title: "House Cleaning",
-      category: "cleaning",
-      provider: "Emma, 18",
-      rating: 4.8,
-      reviews: 24,
-      price: "150 kr/hour",
-      location: "Oslo",
-      description: "Professional house cleaning service. I'm reliable, thorough, and pay attention to detail.",
-      image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=300&fit=crop",
-      available: true
-    },
-    {
-      id: 2,
-      title: "Dog Walking",
-      category: "pet-care",
-      provider: "Lars, 16",
-      rating: 4.9,
-      reviews: 31,
-      price: "100 kr/hour",
-      location: "Bergen",
-      description: "Experienced dog walker. I love animals and provide reliable walking services.",
-      image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&h=300&fit=crop",
-      available: true
-    },
-    {
-      id: 3,
-      title: "Math Tutoring",
-      category: "tutoring",
-      provider: "Sofia, 17",
-      rating: 4.7,
-      reviews: 18,
-      price: "200 kr/hour",
-      location: "Trondheim",
-      description: "Math tutor specializing in algebra and calculus. Patient and effective teaching methods.",
-      image: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&h=300&fit=crop",
-      available: true
-    },
-    {
-      id: 4,
-      title: "Garden Maintenance",
-      category: "gardening",
-      provider: "Ole, 15",
-      rating: 4.6,
-      reviews: 12,
-      price: "120 kr/hour",
-      location: "Stavanger",
-      description: "Garden maintenance including weeding, planting, and general upkeep.",
-      image: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&h=300&fit=crop",
-      available: true
-    },
-    {
-      id: 5,
-      title: "Computer Help",
-      category: "tech-help",
-      provider: "Mia, 16",
-      rating: 4.9,
-      reviews: 27,
-      price: "180 kr/hour",
-      location: "Oslo",
-      description: "Tech support for computers, phones, and software. Patient and thorough.",
-      image: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop",
-      available: true
-    },
-    {
-      id: 6,
-      title: "Babysitting",
-      category: "babysitting",
-      provider: "Anna, 17",
-      rating: 4.8,
-      reviews: 35,
-      price: "130 kr/hour",
-      location: "Bergen",
-      description: "Experienced babysitter with first aid certification. Fun and responsible.",
-      image: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=400&h=300&fit=crop",
-      available: true
+  useEffect(() => {
+    fetchServices();
+  }, []);
+
+  const fetchServices = async () => {
+    try {
+      const q = query(collection(db, 'jobs'), orderBy('createdAt', 'desc'));
+      const querySnapshot = await getDocs(q);
+      const servicesData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setServices(servicesData);
+    } catch (error) {
+      console.error('Error fetching services:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   const filteredServices = services.filter(service => {
     const matchesSearch = service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         service.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         service.provider.toLowerCase().includes(searchTerm.toLowerCase());
+                         service.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || service.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -109,7 +51,7 @@ const Services = () => {
   const sortedServices = [...filteredServices].sort((a, b) => {
     switch (sortBy) {
       case 'rating':
-        return b.rating - a.rating;
+        return (b.averageRating || 0) - (a.averageRating || 0);
       case 'price-low':
         return parseInt(a.price) - parseInt(b.price);
       case 'price-high':
@@ -119,13 +61,26 @@ const Services = () => {
     }
   });
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Laster tjenester...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Find Services</h1>
-          <p className="text-gray-600">Discover talented young people offering services in your area</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Finn tjenester</h1>
+          <p className="text-gray-600">Oppdage talentfulle unge som tilbyr tjenester i ditt område</p>
         </div>
 
         {/* Search and Filters */}
@@ -183,53 +138,57 @@ const Services = () => {
         </div>
 
         {/* Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sortedServices.map((service) => (
-            <Link
-              key={service.id}
-              to={`/services/${service.id}`}
-              className="card hover:shadow-xl transition-shadow duration-200"
-            >
-              <img
-                src={service.image}
-                alt={service.title}
-                className="w-full h-48 object-cover rounded-lg mb-4"
-              />
-              <div className="flex items-start justify-between mb-2">
-                <h3 className="text-xl font-semibold text-gray-900">{service.title}</h3>
-                <span className="text-lg font-semibold text-primary-600">{service.price}</span>
-              </div>
-              <p className="text-gray-600 mb-3">by {service.provider}</p>
-              <p className="text-gray-600 text-sm mb-4 line-clamp-2">{service.description}</p>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                  <span className="ml-1 text-sm text-gray-600">{service.rating}</span>
-                  <span className="ml-1 text-sm text-gray-500">({service.reviews})</span>
+        {sortedServices.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">📝</div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Ingen tjenester ennå</h3>
+            <p className="text-gray-600 mb-6">Det er ingen tjenester postet ennå. Vær den første!</p>
+            <Link to="/create-job" className="btn-primary">
+              Post første tjeneste
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {sortedServices.map((service) => (
+              <Link
+                key={service.id}
+                to={`/services/${service.id}`}
+                className="card hover:shadow-xl transition-shadow duration-200"
+              >
+                {service.images && service.images.length > 0 && (
+                  <img
+                    src={service.images[0]}
+                    alt={service.title}
+                    className="w-full h-48 object-cover rounded-lg mb-4"
+                  />
+                )}
+                <div className="flex items-start justify-between mb-2">
+                  <h3 className="text-xl font-semibold text-gray-900">{service.title}</h3>
+                  <span className="text-lg font-semibold text-primary-600">{service.price} kr</span>
                 </div>
-                <div className="flex items-center text-sm text-gray-600">
-                  <MapPin className="w-4 h-4 mr-1" />
-                  {service.location}
+                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{service.description}</p>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center text-sm text-gray-600">
+                    <MapPin className="w-4 h-4 mr-1" />
+                    {service.location}
+                  </div>
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Clock className="w-4 h-4 mr-1" />
+                    {service.duration || 'Fleksibel'}
+                  </div>
                 </div>
-              </div>
-              
-              {service.available && (
+                
                 <div className="mt-3 flex items-center text-sm text-green-600">
                   <Clock className="w-4 h-4 mr-1" />
-                  Available now
+                  Tilgjengelig nå
                 </div>
-              )}
-            </Link>
-          ))}
-        </div>
-
-        {sortedServices.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No services found matching your criteria.</p>
-            <p className="text-gray-400">Try adjusting your search or filters.</p>
+              </Link>
+            ))}
           </div>
         )}
+
+
       </div>
     </div>
   );

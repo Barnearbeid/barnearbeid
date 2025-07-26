@@ -20,10 +20,10 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <Link to="/services" className="text-gray-600 hover:text-gray-900 transition-colors">
-              Find Services
+              Finn tjenester
             </Link>
             <Link to="/create-service" className="text-gray-600 hover:text-gray-900 transition-colors">
-              Offer Service
+              Tilby tjeneste
             </Link>
           </div>
 
@@ -33,7 +33,7 @@ const Navbar = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="Search services..."
+                placeholder="Søk etter tjenester..."
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
@@ -43,7 +43,7 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-4">
             <Link to="/create-service" className="btn-secondary flex items-center space-x-2">
               <Plus className="w-4 h-4" />
-              <span>Create Service</span>
+              <span>Opprett tjeneste</span>
             </Link>
             <Link to="/profile" className="p-2 text-gray-600 hover:text-gray-900 transition-colors">
               <User className="w-5 h-5" />
@@ -70,26 +70,26 @@ const Navbar = () => {
                 className="block text-gray-600 hover:text-gray-900"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Find Services
+                Finn tjenester
               </Link>
               <Link
                 to="/create-service"
                 className="block text-gray-600 hover:text-gray-900"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Offer Service
+                Tilby tjeneste
               </Link>
               <Link
                 to="/profile"
                 className="block text-gray-600 hover:text-gray-900"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Profile
+                Profil
               </Link>
               <div className="pt-4">
                 <input
                   type="text"
-                  placeholder="Search services..."
+                  placeholder="Søk etter tjenester..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
               </div>

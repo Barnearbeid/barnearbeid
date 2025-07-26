@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Filter, Star, MapPin, Clock } from 'lucide-react';
+import { Search, Filter, Star, MapPin, Clock, User, Briefcase } from 'lucide-react';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -12,13 +12,13 @@ const Services = () => {
   const [loading, setLoading] = useState(true);
 
   const categories = [
-    { id: 'all', name: 'All Categories' },
-    { id: 'cleaning', name: 'Cleaning' },
-    { id: 'pet-care', name: 'Pet Care' },
-    { id: 'tutoring', name: 'Tutoring' },
-    { id: 'gardening', name: 'Gardening' },
-    { id: 'tech-help', name: 'Tech Help' },
-    { id: 'babysitting', name: 'Babysitting' }
+    { id: 'all', name: 'Alle kategorier' },
+    { id: 'cleaning', name: 'Rengjøring' },
+    { id: 'pet-care', name: 'Dyrepass' },
+    { id: 'tutoring', name: 'Undervisning' },
+    { id: 'gardening', name: 'Hagearbeid' },
+    { id: 'tech-help', name: 'Teknisk hjelp' },
+    { id: 'babysitting', name: 'Barnepass' }
   ];
 
   useEffect(() => {
@@ -61,6 +61,10 @@ const Services = () => {
     }
   });
 
+  const getUserTypeLabel = (userType) => {
+    return userType === 'seeker' ? 'Jobbsøker' : 'Jobbposter';
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
@@ -79,7 +83,7 @@ const Services = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Finn tjenester</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Finn jobber</h1>
           <p className="text-gray-600">Oppdage talentfulle unge som tilbyr tjenester i ditt område</p>
         </div>
 
@@ -92,7 +96,7 @@ const Services = () => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input
                   type="text"
-                  placeholder="Search services, providers..."
+                  placeholder="Søk etter tjenester, tilbydere..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -122,9 +126,9 @@ const Services = () => {
                 onChange={(e) => setSortBy(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                <option value="rating">Sort by Rating</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
+                <option value="rating">Sorter etter rating</option>
+                <option value="price-low">Pris: Lav til høy</option>
+                <option value="price-high">Pris: Høy til lav</option>
               </select>
             </div>
           </div>
@@ -133,7 +137,7 @@ const Services = () => {
         {/* Results */}
         <div className="mb-6">
           <p className="text-gray-600">
-            Showing {sortedServices.length} of {services.length} services
+            Viser {sortedServices.length} av {services.length} tjenester
           </p>
         </div>
 
@@ -143,7 +147,7 @@ const Services = () => {
             <div className="text-6xl mb-4">📝</div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">Ingen tjenester ennå</h3>
             <p className="text-gray-600 mb-6">Det er ingen tjenester postet ennå. Vær den første!</p>
-            <Link to="/create-job" className="btn-primary">
+            <Link to="/create-service" className="btn-primary">
               Post første tjeneste
             </Link>
           </div>
@@ -166,6 +170,23 @@ const Services = () => {
                   <h3 className="text-xl font-semibold text-gray-900">{service.title}</h3>
                   <span className="text-lg font-semibold text-primary-600">{service.price} kr</span>
                 </div>
+                
+                {/* Provider info with user type */}
+                <div className="flex items-center space-x-2 mb-3">
+                  <span className="text-gray-600">av</span>
+                  <span className="font-medium">{service.providerName || 'Ukjent tilbyder'}</span>
+                  <div className="flex items-center space-x-1">
+                    {service.providerType === 'seeker' ? (
+                      <User className="w-4 h-4 text-blue-600" />
+                    ) : (
+                      <Briefcase className="w-4 h-4 text-green-600" />
+                    )}
+                    <span className="text-xs text-gray-500">
+                      {getUserTypeLabel(service.providerType)}
+                    </span>
+                  </div>
+                </div>
+                
                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">{service.description}</p>
                 
                 <div className="flex items-center justify-between">

@@ -16,24 +16,49 @@ const Messaging = ({ targetUserId, targetUserName, onClose }) => {
   }, [targetUserId]);
 
   const loadMessages = () => {
-    const chatId = [auth.currentUser.uid, targetUserId].sort().join('_');
-    
-    const q = query(
+    // Query for messages between these two users (both directions)
+    const q1 = query(
       collection(db, 'messages'),
-      where('chatId', '==', chatId),
+      where('fromUserId', '==', auth.currentUser.uid),
+      where('toUserId', '==', targetUserId),
       orderBy('createdAt', 'asc')
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const messageList = snapshot.docs.map(doc => ({
+    const q2 = query(
+      collection(db, 'messages'),
+      where('fromUserId', '==', targetUserId),
+      where('toUserId', '==', auth.currentUser.uid),
+      orderBy('createdAt', 'asc')
+    );
+
+    const unsubscribe1 = onSnapshot(q1, (snapshot) => {
+      const sentMessages = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
-      setMessages(messageList);
+      
+      // Combine with received messages
+      const allMessages = [...sentMessages, ...messages.filter(m => m.fromUserId === targetUserId)];
+      setMessages(allMessages.sort((a, b) => a.createdAt - b.createdAt));
       setLoading(false);
     });
 
-    return unsubscribe;
+    const unsubscribe2 = onSnapshot(q2, (snapshot) => {
+      const receivedMessages = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
+      // Combine with sent messages
+      const allMessages = [...messages.filter(m => m.fromUserId === auth.currentUser.uid), ...receivedMessages];
+      setMessages(allMessages.sort((a, b) => a.createdAt - b.createdAt));
+      setLoading(false);
+    });
+
+    return () => {
+      unsubscribe1();
+      unsubscribe2();
+    };
   };
 
   const sendMessage = async (e) => {
@@ -42,10 +67,7 @@ const Messaging = ({ targetUserId, targetUserName, onClose }) => {
 
     setSending(true);
     try {
-      const chatId = [auth.currentUser.uid, targetUserId].sort().join('_');
-      
       await addDoc(collection(db, 'messages'), {
-        chatId: chatId,
         fromUserId: auth.currentUser.uid,
         toUserId: targetUserId,
         message: newMessage.trim(),

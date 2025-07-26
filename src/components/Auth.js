@@ -95,6 +95,12 @@ const Auth = ({ onClose }) => {
                 <span>Jobbposter</span>
               </button>
             </div>
+            <p className="text-xs text-gray-600 mt-2">
+              {userType === 'seeker' 
+                ? 'Jobbsøkere kan søke og booke jobber' 
+                : 'Jobbpostere kan opprette og tilby tjenester'
+              }
+            </p>
           </div>
         )}
 

@@ -4,12 +4,13 @@ import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-  authDomain: "barnearbeid-mvp.firebaseapp.com",
-  projectId: "barnearbeid-mvp",
-  storageBucket: "barnearbeid-mvp.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdef1234567890"
+  apiKey: "AIzaSyAmJF8s2YFb5d42sZGgOJ5HOP9XC5ZwYB8",
+  authDomain: "barnearbeid-no.firebaseapp.com",
+  projectId: "barnearbeid-no",
+  storageBucket: "barnearbeid-no.firebasestorage.app",
+  messagingSenderId: "468278023792",
+  appId: "1:468278023792:web:3363f7db13e216a13f46b5",
+  measurementId: "G-4H4LP4MNK6"
 };
 
 // Initialize Firebase

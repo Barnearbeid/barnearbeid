@@ -10,7 +10,7 @@ import ServiceDetail from './pages/ServiceDetail';
 
 function App() {
   return (
-    <Router>
+    <Router basename="/barnearbeid">
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <main>

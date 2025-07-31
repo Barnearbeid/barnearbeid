@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Star, MapPin, Clock, Calendar, MessageCircle, Phone, Mail, ArrowLeft, User, Briefcase } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import Messaging from '../components/Messaging';
 import RatingSystem from '../components/RatingSystem';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const ServiceDetail = () => {
   const { id } = useParams();
@@ -18,44 +19,62 @@ const ServiceDetail = () => {
   const [showRating, setShowRating] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
-  useEffect(() => {
-    fetchService();
-    if (auth.currentUser) {
-      fetchCurrentUser();
+  const fetchService = useCallback(async () => {
+    if (!id) {
+      setError('Mangler tjeneste-ID');
+      setLoading(false);
+      return;
     }
-  }, [id]);
 
-  const fetchService = async () => {
     try {
       setLoading(true);
+      setError(null);
+      
       const serviceDoc = await getDoc(doc(db, 'jobs', id));
       
       if (serviceDoc.exists()) {
+        const serviceData = serviceDoc.data();
         setService({
           id: serviceDoc.id,
-          ...serviceDoc.data()
+          ...serviceData
         });
       } else {
         setError('Tjeneste ikke funnet');
       }
     } catch (error) {
       console.error('Error fetching service:', error);
-      setError('Kunne ikke laste tjeneste');
+      setError('Kunne ikke laste tjeneste. Prøv igjen senere.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
-  const fetchCurrentUser = async () => {
+  const fetchCurrentUser = useCallback(async () => {
+    if (!auth.currentUser) {
+      setCurrentUser(null);
+      return;
+    }
+
     try {
       const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
       if (userDoc.exists()) {
         setCurrentUser(userDoc.data());
+      } else {
+        setCurrentUser(null);
       }
     } catch (error) {
       console.error('Error fetching current user:', error);
+      setCurrentUser(null);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchService();
+  }, [fetchService]);
+
+  useEffect(() => {
+    fetchCurrentUser();
+  }, [fetchCurrentUser]);
 
   const handleBooking = (e) => {
     e.preventDefault();
@@ -102,10 +121,7 @@ const ServiceDetail = () => {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Laster tjeneste...</p>
-          </div>
+          <LoadingSpinner size="lg" text="Laster tjeneste..." />
         </div>
       </div>
     );
@@ -128,6 +144,28 @@ const ServiceDetail = () => {
     );
   }
 
+  // Ensure all required fields exist with fallbacks
+  const safeService = {
+    id: service.id || '',
+    title: service.title || 'Ukjent tjeneste',
+    description: service.description || 'Ingen beskrivelse tilgjengelig',
+    price: service.price || 0,
+    location: service.location || 'Ikke spesifisert',
+    providerName: service.providerName || 'Ukjent tilbyder',
+    providerId: service.providerId || '',
+    providerType: service.providerType || 'seeker',
+    averageRating: service.averageRating || 0,
+    reviewCount: service.reviewCount || 0,
+    reviews: service.reviews || [],
+    experience: service.experience || 'Ikke spesifisert',
+    languages: service.languages || [],
+    certifications: service.certifications || [],
+    availability: service.availability || {},
+    images: service.images || [],
+    createdAt: service.createdAt || new Date(),
+    status: service.status || 'active'
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -144,66 +182,69 @@ const ServiceDetail = () => {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">{service.title}</h1>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">{safeService.title}</h1>
                   <div className="flex items-center space-x-2 mb-3">
                     <span className="text-gray-600">av</span>
-                    <span className="font-medium">{service.providerName || 'Ukjent tilbyder'}</span>
+                    <span className="font-medium">{safeService.providerName}</span>
                     <div className="flex items-center space-x-1">
-                      {service.providerType === 'seeker' ? (
+                      {safeService.providerType === 'seeker' ? (
                         <User className="w-4 h-4 text-blue-600" />
                       ) : (
                         <Briefcase className="w-4 h-4 text-green-600" />
                       )}
                       <span className="text-sm text-gray-500">
-                        {getUserTypeLabel(service.providerType)}
+                        {getUserTypeLabel(safeService.providerType)}
                       </span>
                     </div>
                   </div>
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center">
                       <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                      <span className="ml-1 font-semibold">{service.averageRating || 'Ingen rating'}</span>
-                      <span className="ml-1 text-gray-600">({service.reviewCount || 0} vurderinger)</span>
+                      <span className="ml-1 font-semibold">{safeService.averageRating || 'Ingen rating'}</span>
+                      <span className="ml-1 text-gray-600">({safeService.reviewCount} vurderinger)</span>
                     </div>
                     <div className="flex items-center text-gray-600">
                       <MapPin className="w-4 h-4 mr-1" />
-                      {service.location}
+                      {safeService.location}
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-primary-600">{service.price} kr</div>
+                  <div className="text-2xl font-bold text-primary-600">{safeService.price} kr</div>
                   <div className="text-sm text-gray-600">per time</div>
                 </div>
               </div>
               
-              {service.images && service.images.length > 0 && (
+              {safeService.images && safeService.images.length > 0 && (
                 <img
-                  src={service.images[0]}
-                  alt={service.title}
+                  src={safeService.images[0]}
+                  alt={safeService.title}
                   className="w-full h-64 object-cover rounded-lg mb-6"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
                 />
               )}
               
               <div className="prose max-w-none">
                 <h3 className="text-lg font-semibold mb-3">Om denne tjenesten</h3>
-                <p className="text-gray-700 mb-4">{service.description}</p>
+                <p className="text-gray-700 mb-4">{safeService.description}</p>
               </div>
             </div>
 
             {/* Provider Information */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-              <h3 className="text-xl font-semibold mb-4">Om {service.providerName || 'tilbyderen'}</h3>
+              <h3 className="text-xl font-semibold mb-4">Om {safeService.providerName}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-gray-600"><strong>Erfaring:</strong> {service.experience || 'Ikke spesifisert'}</p>
-                  <p className="text-gray-600"><strong>Språk:</strong> {service.languages ? service.languages.join(', ') : 'Ikke spesifisert'}</p>
+                  <p className="text-gray-600"><strong>Erfaring:</strong> {safeService.experience}</p>
+                  <p className="text-gray-600"><strong>Språk:</strong> {safeService.languages.length > 0 ? safeService.languages.join(', ') : 'Ikke spesifisert'}</p>
                 </div>
                 <div>
                   <p className="text-gray-600"><strong>Sertifikater:</strong></p>
                   <ul className="text-gray-600">
-                    {service.certifications && service.certifications.length > 0 ? (
-                      service.certifications.map((cert, index) => (
+                    {safeService.certifications.length > 0 ? (
+                      safeService.certifications.map((cert, index) => (
                         <li key={index}>• {cert}</li>
                       ))
                     ) : (
@@ -215,16 +256,32 @@ const ServiceDetail = () => {
             </div>
 
             {/* Availability */}
-            {service.availability && (
+            {safeService.availability && Object.keys(safeService.availability).length > 0 && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
                 <h3 className="text-xl font-semibold mb-4">Tilgjengelighet</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {Object.entries(service.availability).map(([day, hours]) => (
-                    <div key={day} className="flex justify-between">
-                      <span className="font-medium capitalize">{day}</span>
-                      <span className="text-gray-600">{hours}</span>
-                    </div>
-                  ))}
+                  {Object.entries(safeService.availability).map(([day, hours]) => {
+                    let availabilityText = 'Ikke spesifisert';
+                    
+                    if (typeof hours === 'object' && hours !== null) {
+                      if (hours.available !== undefined) {
+                        availabilityText = hours.available 
+                          ? `${hours.start || '09:00'} - ${hours.end || '17:00'}`
+                          : 'Ikke tilgjengelig';
+                      } else {
+                        availabilityText = 'Ikke spesifisert';
+                      }
+                    } else if (typeof hours === 'string') {
+                      availabilityText = hours;
+                    }
+                    
+                    return (
+                      <div key={day} className="flex justify-between">
+                        <span className="font-medium capitalize">{day}</span>
+                        <span className="text-gray-600">{availabilityText}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -233,7 +290,7 @@ const ServiceDetail = () => {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-semibold">Vurderinger</h3>
-                {auth.currentUser && auth.currentUser.uid !== service.providerId && (
+                {auth.currentUser && auth.currentUser.uid !== safeService.providerId && (
                   <button
                     onClick={handleRateUser}
                     className="text-sm text-primary-600 hover:text-primary-700 font-medium"
@@ -242,9 +299,9 @@ const ServiceDetail = () => {
                   </button>
                 )}
               </div>
-              {service.reviews && service.reviews.length > 0 ? (
+              {safeService.reviews && safeService.reviews.length > 0 ? (
                 <div className="space-y-4">
-                  {service.reviews.map((review, index) => (
+                  {safeService.reviews.map((review, index) => (
                     <div key={index} className="border-b border-gray-200 pb-4 last:border-b-0">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center">
@@ -258,9 +315,11 @@ const ServiceDetail = () => {
                             ))}
                           </div>
                         </div>
-                        <span className="text-sm text-gray-500">{review.date || 'Ukjent dato'}</span>
+                        <span className="text-sm text-gray-500">
+                          {review.date ? (typeof review.date === 'object' ? review.date.toDate().toLocaleDateString('no-NO') : review.date) : 'Ukjent dato'}
+                        </span>
                       </div>
-                      <p className="text-gray-700">{review.comment}</p>
+                      <p className="text-gray-700">{review.comment || 'Ingen kommentar'}</p>
                     </div>
                   ))}
                 </div>
@@ -340,7 +399,7 @@ const ServiceDetail = () => {
 
               {/* Contact Information */}
               <div className="mt-6 pt-6 border-t border-gray-200">
-                <h4 className="font-semibold mb-3">Kontakt {service.providerName || 'tilbyderen'}</h4>
+                <h4 className="font-semibold mb-3">Kontakt {safeService.providerName}</h4>
                 <div className="space-y-2">
                   <button 
                     onClick={handleSendMessage}
@@ -361,19 +420,19 @@ const ServiceDetail = () => {
       </div>
 
       {/* Messaging Modal */}
-      {showMessaging && service.providerId && (
+      {showMessaging && safeService.providerId && (
         <Messaging
-          targetUserId={service.providerId}
-          targetUserName={service.providerName || 'Tilbyder'}
+          targetUserId={safeService.providerId}
+          targetUserName={safeService.providerName}
           onClose={() => setShowMessaging(false)}
         />
       )}
 
       {/* Rating Modal */}
-      {showRating && service.providerId && (
+      {showRating && safeService.providerId && (
         <RatingSystem
-          targetUserId={service.providerId}
-          targetUserName={service.providerName || 'Tilbyder'}
+          targetUserId={safeService.providerId}
+          targetUserName={safeService.providerName}
           onClose={() => setShowRating(false)}
           onRatingSubmitted={() => {
             // Refresh the service data to show updated ratings

@@ -194,3 +194,5 @@ This project is licensed under the MIT License.
 - Built with modern web technologies
 - Designed for youth empowerment and entrepreneurship
 - Connecting local communities through meaningful work opportunities
+
+- Thank you for reading!

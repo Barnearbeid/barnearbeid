@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, Plus, X } from 'lucide-react';
+import { collection, addDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase';
 
 const CreateService = () => {
   const navigate = useNavigate();
@@ -26,20 +28,22 @@ const CreateService = () => {
 
   const [newLanguage, setNewLanguage] = useState('');
   const [newCertification, setNewCertification] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const categories = [
-    { id: 'cleaning', name: 'Cleaning', icon: '🧹' },
-    { id: 'pet-care', name: 'Pet Care', icon: '🐕' },
-    { id: 'tutoring', name: 'Tutoring', icon: '📚' },
-    { id: 'gardening', name: 'Gardening', icon: '🌱' },
-    { id: 'tech-help', name: 'Tech Help', icon: '💻' },
-    { id: 'babysitting', name: 'Babysitting', icon: '👶' },
-    { id: 'cooking', name: 'Cooking', icon: '👨‍🍳' },
-    { id: 'photography', name: 'Photography', icon: '📸' },
-    { id: 'music', name: 'Music Lessons', icon: '🎵' },
-    { id: 'sports', name: 'Sports Coaching', icon: '⚽' },
-    { id: 'art', name: 'Art & Crafts', icon: '🎨' },
-    { id: 'other', name: 'Other', icon: '✨' }
+    { id: 'cleaning', name: 'Rengjøring', icon: '🧹' },
+    { id: 'pet-care', name: 'Dyrepass', icon: '🐕' },
+    { id: 'tutoring', name: 'Undervisning', icon: '📚' },
+    { id: 'gardening', name: 'Hagearbeid', icon: '🌱' },
+    { id: 'tech-help', name: 'Teknisk hjelp', icon: '💻' },
+    { id: 'babysitting', name: 'Barnepass', icon: '👶' },
+    { id: 'cooking', name: 'Matlaging', icon: '👨‍🍳' },
+    { id: 'photography', name: 'Fotografering', icon: '📸' },
+    { id: 'music', name: 'Musikkundervisning', icon: '🎵' },
+    { id: 'sports', name: 'Idrettscoaching', icon: '⚽' },
+    { id: 'art', name: 'Kunst & Håndverk', icon: '🎨' },
+    { id: 'other', name: 'Annet', icon: '✨' }
   ];
 
   const handleInputChange = (e) => {
@@ -97,38 +101,79 @@ const CreateService = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // In a real app, this would send the data to an API
-    console.log('Service data:', formData);
-    alert('Service created successfully!');
-    navigate('/services');
+    
+    if (!auth.currentUser) {
+      alert('Du må være logget inn for å opprette en tjeneste');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      // Prepare the job data
+      const jobData = {
+        ...formData,
+        userId: auth.currentUser.uid,
+        providerId: auth.currentUser.uid,
+        providerName: auth.currentUser.displayName || 'Ukjent tilbyder',
+        providerType: 'seeker', // Default to seeker since they're offering services
+        price: parseInt(formData.price),
+        createdAt: new Date(),
+        status: 'active',
+        images: [], // Will be implemented later
+        averageRating: 0,
+        reviewCount: 0,
+        reviews: []
+      };
+
+      // Save to Firebase
+      const docRef = await addDoc(collection(db, 'jobs'), jobData);
+      
+      console.log('Job created with ID:', docRef.id);
+      alert('Tjeneste opprettet!');
+      navigate('/services');
+      
+    } catch (error) {
+      console.error('Error creating job:', error);
+      setError('Feil ved opprettelse av tjeneste. Prøv igjen.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Your Service</h1>
-          <p className="text-gray-600">Share your skills and start earning money</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Opprett din tjeneste</h1>
+          <p className="text-gray-600">Del dine ferdigheter og start å tjene penger</p>
         </div>
+
+        {error && (
+          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Basic Information */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold mb-6">Basic Information</h2>
+            <h2 className="text-xl font-semibold mb-6">Grunnleggende informasjon</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Service Title *
+                  Tjenestetittel *
                 </label>
                 <input
                   type="text"
                   name="title"
                   value={formData.title}
                   onChange={handleInputChange}
-                  placeholder="e.g., House Cleaning, Math Tutoring"
+                  placeholder="f.eks. Husrengjøring, Matematikkundervisning"
                   className="input-field"
                   required
                 />
@@ -136,7 +181,7 @@ const CreateService = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category *
+                  Kategori *
                 </label>
                 <select
                   name="category"
@@ -145,7 +190,7 @@ const CreateService = () => {
                   className="input-field"
                   required
                 >
-                  <option value="">Select a category</option>
+                  <option value="">Velg en kategori</option>
                   {categories.map(category => (
                     <option key={category.id} value={category.id}>
                       {category.icon} {category.name}
@@ -156,7 +201,7 @@ const CreateService = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Price per Hour (NOK) *
+                  Pris per time (NOK) *
                 </label>
                 <input
                   type="number"
@@ -171,14 +216,14 @@ const CreateService = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Location *
+                  Sted *
                 </label>
                 <input
                   type="text"
                   name="location"
                   value={formData.location}
                   onChange={handleInputChange}
-                  placeholder="e.g., Oslo, Bergen"
+                  placeholder="f.eks. Oslo, Bergen"
                   className="input-field"
                   required
                 />
@@ -187,13 +232,13 @@ const CreateService = () => {
 
             <div className="mt-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description *
+                Beskrivelse *
               </label>
               <textarea
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
-                placeholder="Describe your service, experience, and what makes you unique..."
+                placeholder="Beskriv din tjeneste, erfaring og hva som gjør deg unik..."
                 rows="4"
                 className="input-field"
                 required
@@ -203,33 +248,33 @@ const CreateService = () => {
 
           {/* Experience & Skills */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold mb-6">Experience & Skills</h2>
+            <h2 className="text-xl font-semibold mb-6">Erfaring og ferdigheter</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Years of Experience
+                  År med erfaring
                 </label>
                 <input
                   type="text"
                   name="experience"
                   value={formData.experience}
                   onChange={handleInputChange}
-                  placeholder="e.g., 2 years, 6 months"
+                  placeholder="f.eks. 2 år, 6 måneder"
                   className="input-field"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Languages You Speak
+                  Språk du snakker
                 </label>
                 <div className="flex space-x-2">
                   <input
                     type="text"
                     value={newLanguage}
                     onChange={(e) => setNewLanguage(e.target.value)}
-                    placeholder="e.g., Norwegian"
+                    placeholder="f.eks. Norsk"
                     className="input-field flex-1"
                   />
                   <button
@@ -264,14 +309,14 @@ const CreateService = () => {
 
             <div className="mt-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Certifications & Qualifications
+                Sertifikater og kvalifikasjoner
               </label>
               <div className="flex space-x-2">
                 <input
                   type="text"
                   value={newCertification}
                   onChange={(e) => setNewCertification(e.target.value)}
-                  placeholder="e.g., First Aid Certificate"
+                  placeholder="f.eks. Førstehjelpssertifikat"
                   className="input-field flex-1"
                 />
                 <button
@@ -306,7 +351,7 @@ const CreateService = () => {
 
           {/* Availability */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold mb-6">Availability</h2>
+            <h2 className="text-xl font-semibold mb-6">Tilgjengelighet</h2>
             
             <div className="space-y-4">
               {Object.entries(formData.availability).map(([day, schedule]) => (
@@ -331,7 +376,7 @@ const CreateService = () => {
                         onChange={(e) => handleAvailabilityChange(day, 'start', e.target.value)}
                         className="input-field w-32"
                       />
-                      <span>to</span>
+                      <span>til</span>
                       <input
                         type="time"
                         value={schedule.end}
@@ -347,19 +392,19 @@ const CreateService = () => {
 
           {/* Photos */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold mb-6">Photos (Optional)</h2>
+            <h2 className="text-xl font-semibold mb-6">Bilder (valgfritt)</h2>
             
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
               <Upload className="mx-auto h-12 w-12 text-gray-400" />
               <div className="mt-4">
                 <p className="text-gray-600">
-                  Upload photos of your work or yourself to build trust with customers
+                  Last opp bilder av ditt arbeid eller deg selv for å bygge tillit med kunder
                 </p>
                 <button
                   type="button"
                   className="mt-2 btn-primary"
                 >
-                  Choose Files
+                  Velg filer
                 </button>
               </div>
             </div>
@@ -372,13 +417,14 @@ const CreateService = () => {
               onClick={() => navigate('/services')}
               className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
             >
-              Cancel
+              Avbryt
             </button>
             <button
               type="submit"
+              disabled={loading}
               className="btn-primary px-8 py-3 text-lg"
             >
-              Create Service
+              {loading ? 'Oppretter...' : 'Opprett tjeneste'}
             </button>
           </div>
         </form>

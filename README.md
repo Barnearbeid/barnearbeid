@@ -1,198 +1,404 @@
 # Barnearbeid - Småjobber i ditt nærmiljø
 
-A modern web application that connects young people with customers looking for various services in their local area. Built with React, Tailwind CSS, and modern web technologies.
+<div align="center">
 
-## 🚀 Features
+![Barnearbeid Logo](https://img.shields.io/badge/Barnearbeid-Platform-blue?style=for-the-badge&logo=react)
+![React](https://img.shields.io/badge/React-18.0.0-blue?style=flat-square&logo=react)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.0-blue?style=flat-square&logo=tailwind-css)
+![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 
-- **Service Discovery**: Browse and search for youth services by category
-- **Service Creation**: Youth can create and manage their service offerings
-- **Booking System**: Customers can book services with date/time selection
-- **User Profiles**: Comprehensive profiles with ratings, reviews, and earnings tracking
-- **Responsive Design**: Mobile-first design that works on all devices
-- **Modern UI**: Beautiful, intuitive interface with smooth animations
+**En moderne plattform som kobler sammen unge og kunder for småjobber i lokalmiljøet**
 
-## 🛠️ Tech Stack
+[🚀 Kom i gang](#-kom-i-gang) • [📖 Dokumentasjon](#-dokumentasjon) • [🤝 Bidrag](#-bidrag) • [📄 Lisens](#-lisens)
 
-- **Frontend**: React 18 with React Router
-- **Styling**: Tailwind CSS with custom components
-- **Icons**: Lucide React
-- **Build Tool**: Create React App
-- **Fonts**: Inter (Google Fonts)
+</div>
 
-## 📁 Project Structure
+---
+
+## 📋 Innhold
+
+- [Om prosjektet](#-om-prosjektet)
+- [Funksjoner](#-funksjoner)
+- [Teknisk stack](#-teknisk-stack)
+- [Prosjektstruktur](#-prosjektstruktur)
+- [Kom i gang](#-kom-i-gang)
+- [Git og versjonskontroll](#-git-og-versjonskontroll)
+- [Utvikling](#-utvikling)
+- [Bygging og deploy](#-bygging-og-deploy)
+- [Dokumentasjon](#-dokumentasjon)
+- [Bidrag](#-bidrag)
+- [Lisens](#-lisens)
+
+## 🎯 Om prosjektet
+
+**Barnearbeid** er en moderne webapplikasjon som gir unge mennesker muligheten til å tilby tjenester i sitt lokalmiljø. Plattformen fungerer som en bro mellom unge som ønsker å tjene penger og kunder som trenger hjelp med ulike oppgaver.
+
+### Hvorfor Barnearbeid?
+
+- **For unge**: Enkel måte å finne betalte oppgaver i nærmiljøet
+- **For kunder**: Rask tilgang til pålitelig hjelp for småjobber
+- **For samfunnet**: Styrker lokalsamfunnet og gir unge arbeidserfaring
+
+### Målgruppe
+
+- **Ungdommer** (13-18 år) som ønsker å tjene penger
+- **Voksne** som trenger hjelp med småjobber
+- **Familier** som ønsker pålitelig hjelp i hjemmet
+
+## ✨ Funksjoner
+
+### 🔍 Tjenesteoppdagelse
+- **Kategoribasert søk**: Finn tjenester etter type (hagearbeid, barnepass, rengjøring, etc.)
+- **Avansert filtrering**: Filtrer etter pris, rating, tilgjengelighet og lokasjon
+- **Søkefunksjonalitet**: Rask søk i alle tilgjengelige tjenester
+- **Anbefalinger**: Personlig tilpassede forslag basert på tidligere aktivitet
+
+### 🛠️ Tjenesteopprettelse
+- **Enkel registrering**: Ungdommer kan enkelt opprette sin første tjeneste
+- **Kategorivalg**: Velg fra forhåndsdefinerte kategorier med ikoner
+- **Prisfastsettelse**: Fleksibel prissetting med forslag basert på markedet
+- **Tilgjengelighet**: Angi når du kan jobbe (dager, tider, ferier)
+
+### 📅 Bookingsystem
+- **Dato- og tidsvalg**: Kunder velger når de ønsker tjenesten
+- **Bekreftelsesprosess**: Automatisk bekreftelse og påminnelser
+- **Kansellering**: Enkel kansellering med rimelig varsling
+- **Kalendersynkronisering**: Integrering med personlige kalendere
+
+### 👤 Brukerprofiler
+- **Omfattende profiler**: Vis ferdigheter, erfaring og sertifikater
+- **Vurderingssystem**: Stjerner og anmeldelser fra tidligere kunder
+- **Inntektsoversikt**: Spor inntekter og jobbhistorikk
+- **Pålitelighet**: Verifiserte profiler for økt tillit
+
+### 📱 Responsivt design
+- **Mobilførst**: Optimalisert for smarttelefoner og nettbrett
+- **Adaptivt grensesnitt**: Tilpasser seg alle skjermstørrelser
+- **Touch-vennlig**: Enkel navigering på berøringsenheter
+- **Offline-støtte**: Grunnleggende funksjonalitet uten internett
+
+### 🎨 Moderne brukergrensesnitt
+- **Intuitivt design**: Enkel å forstå og bruke
+- **Smooth animasjoner**: Polerte overganger og interaksjoner
+- **Tilgjengelighet**: Følger WCAG-retningslinjer
+- **Mørk modus**: Støtte for både lyst og mørkt tema
+
+## 🛠️ Teknisk stack
+
+### Frontend
+- **React 18**: Moderne JavaScript-bibliotek for brukergrensesnitt
+- **React Router**: Klient-side routing for enkeltstående applikasjon
+- **Tailwind CSS**: Utility-first CSS-rammeverk for rask styling
+- **Lucide React**: Konsistente og skalerbare ikoner
+
+### Byggeverktøy
+- **Create React App**: Konfigurasjonsfri React-oppsett
+- **PostCSS**: CSS-prosessering og optimalisering
+- **Webpack**: Modul-bundler (konfigurert av CRA)
+
+### Utviklingsverktøy
+- **ESLint**: Kodekvalitet og konsistens
+- **Prettier**: Kodeformatering
+- **Git**: Versjonskontroll
+
+### Skrifter og fonter
+- **Inter**: Moderne sans-serif font fra Google Fonts
+- **System fonts**: Fallback til systemets standardfonter
+
+## 📁 Prosjektstruktur
 
 ```
-src/
-├── components/          # Reusable UI components
-│   └── Navbar.js       # Navigation component
-├── pages/              # Page components
-│   ├── Home.js         # Landing page
-│   ├── Services.js     # Service listing page
-│   ├── ServiceDetail.js # Individual service page
-│   ├── CreateService.js # Service creation form
-│   └── Profile.js      # User profile page
-├── App.js              # Main app component with routing
-├── index.js            # React entry point
-└── index.css           # Global styles and Tailwind imports
+barnearbeid/
+├── public/                 # Statiske filer
+│   ├── index.html         # HTML-mal
+│   └── manifest.json      # PWA-manifest
+├── src/                   # Kildekode
+│   ├── components/        # Gjenbrukbare komponenter
+│   │   ├── Auth.js       # Autentisering
+│   │   ├── EditProfile.js # Profilredigering
+│   │   ├── FAQ.js        # Ofte stilte spørsmål
+│   │   ├── Footer.js     # Bunntekst
+│   │   ├── Messaging.js  # Meldingssystem
+│   │   ├── Navbar.js     # Navigasjonsmeny
+│   │   └── RatingSystem.js # Vurderingssystem
+│   ├── pages/            # Sidekomponenter
+│   │   ├── CreateJob.js  # Jobbopprettelse
+│   │   ├── CreateService.js # Tjenesteopprettelse
+│   │   ├── Home.js       # Hjemmeside
+│   │   ├── Jobs.js       # Jobblisting
+│   │   ├── Profile.js    # Brukerprofil
+│   │   ├── ServiceDetail.js # Tjenestedetaljer
+│   │   └── Services.js   # Tjenestelisting
+│   ├── App.js            # Hovedapplikasjon med routing
+│   ├── firebase.js       # Firebase-konfigurasjon
+│   ├── index.js          # React oppstartsfil
+│   └── index.css         # Globale stiler og Tailwind
+├── package.json          # Prosjektavhengigheter
+├── tailwind.config.js    # Tailwind CSS-konfigurasjon
+└── README.md            # Prosjektdokumentasjon
 ```
 
-## 🎯 Key Pages
+## 🚀 Kom i gang
 
-### Home Page
-- Hero section with call-to-action
-- Featured services showcase
-- Statistics and social proof
-- Service categories overview
+### Forutsetninger
 
-### Services Page
-- Advanced search and filtering
-- Category-based browsing
-- Rating and price sorting
-- Service cards with key information
+Før du starter, sørg for at du har følgende installert:
 
-### Service Detail Page
-- Comprehensive service information
-- Provider details and reviews
-- Booking form with date/time selection
-- Contact options
+- **Node.js** (versjon 14 eller høyere)
+  - Last ned fra [nodejs.org](https://nodejs.org/)
+  - Anbefalt: LTS-versjon (Long Term Support)
+- **npm** (kommer med Node.js) eller **yarn**
+- **Git** for versjonskontroll
+- **Kodeeditor** (VS Code anbefales)
 
-### Create Service Page
-- Multi-step service creation form
-- Category selection with icons
-- Availability scheduling
-- Skills and certifications management
+### Installasjon
 
-### Profile Page
-- Dashboard with earnings overview
-- Service management
-- Booking history
-- Earnings tracking
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js (version 14 or higher)
-- npm or yarn
-
-### Installation
-
-1. **Install dependencies:**
+1. **Klon repositoryet**
    ```bash
-   npm install
-   ```
-
-2. **Start the development server:**
-   ```bash
-   npm start
-   ```
-
-3. **Open your browser:**
-   Navigate to `http://localhost:3000`
-
-### Available Scripts
-
-- `npm start` - Runs the app in development mode
-- `npm build` - Builds the app for production
-- `npm test` - Launches the test runner
-- `npm eject` - Ejects from Create React App (one-way operation)
-
-## 📚 Git Quick Start
-
-To contribute to this project, you’ll need to use Git for version control. Here are the basic commands you’ll need:
-
-1. **Clone the repository**  
-   Download the project to your computer:
-   ```sh
-   git clone https://github.com/your-username/barnearbeid.git
+   git clone https://github.com/ditt-brukernavn/barnearbeid.git
    cd barnearbeid
    ```
 
-2. **Check the status of your files**  
-   See which files have changed:
-   ```sh
-   git status
+2. **Installer avhengigheter**
+   ```bash
+   npm install
+   ```
+   Dette installerer alle nødvendige pakker definert i `package.json`.
+
+3. **Start utviklingsserveren**
+   ```bash
+   npm start
+   ```
+   Applikasjonen åpnes automatisk i nettleseren på `http://localhost:3000`.
+
+4. **Åpne i nettleseren**
+   Naviger til `http://localhost:3000` hvis den ikke åpnes automatisk.
+
+### Tilgjengelige skript
+
+- `npm start` - Starter applikasjonen i utviklingsmodus
+- `npm build` - Bygger applikasjonen for produksjon
+- `npm test` - Starter testkjøringen
+- `npm eject` - Ejekt fra Create React App (irreversibel operasjon)
+
+## 📚 Git og versjonskontroll
+
+### Grunnleggende Git-kommandoer
+
+For å bidra til prosjektet, må du kunne bruke Git. Her er de viktigste kommandoene:
+
+#### 1. Klone repositoryet
+```bash
+git clone https://github.com/ditt-brukernavn/barnearbeid.git
+cd barnearbeid
+```
+Dette laster ned hele prosjektet til din lokale maskin.
+
+#### 2. Sjekk status
+```bash
+git status
+```
+Viser hvilke filer som er endret, lagt til eller slettet.
+
+#### 3. Opprett ny branch
+```bash
+git checkout -b min-funksjon-branch
+```
+Alltid gjør endringer i en ny branch, ikke i hovedgrenen (main).
+
+#### 4. Legg til endringer
+```bash
+git add .                    # Legg til alle endringer
+git add src/components/      # Legg til spesifikke filer
+git add -p                   # Interaktivt valg av endringer
+```
+
+#### 5. Committ endringer
+```bash
+git commit -m "Legg til ny funksjon for brukerprofiler"
+```
+Skriv beskrivende commit-meldinger som forklarer hva endringen gjør.
+
+#### 6. Hent siste endringer
+```bash
+git pull origin main
+```
+Sørg for at din branch er oppdatert med siste endringer fra hovedgrenen.
+
+#### 7. Push til GitHub
+```bash
+git push origin min-funksjon-branch
+```
+Last opp dine endringer til GitHub.
+
+#### 8. Opprett Pull Request
+Gå til GitHub og opprett en Pull Request fra din branch til `main`.
+
+### Git workflow
+
+1. **Fork repositoryet** på GitHub
+2. **Klon din fork** til lokal maskin
+3. **Opprett feature branch** for hver ny funksjon
+4. **Gjør endringer** og test grundig
+5. **Commit og push** til din fork
+6. **Opprett Pull Request** til hovedrepositoryet
+7. **Få kodegjennomgang** og adresser eventuelle kommentarer
+8. **Merge** når godkjent
+
+## 💻 Utvikling
+
+### Utviklingsmiljø
+
+- **Hot Reloading**: Endringer vises automatisk i nettleseren
+- **Error Overlay**: Tydelige feilmeldinger med stack trace
+- **Source Maps**: Enkel debugging av minifisert kode
+- **ESLint**: Automatisk kodekvalitetskontroll
+
+### Kodekonvensjoner
+
+- **JavaScript**: Bruk moderne ES6+ syntax
+- **React**: Funksjonelle komponenter med hooks
+- **CSS**: Tailwind utility classes
+- **Navngiving**: camelCase for variabler, PascalCase for komponenter
+- **Kommentarer**: Forklar kompleks logikk på norsk
+
+### Testing
+
+```bash
+npm test
+```
+Kjører testene i watch-modus. Testene kjøres automatisk når filer endres.
+
+### Linting og formatering
+
+```bash
+npm run lint
+```
+Sjekker kodekvalitet og stil.
+
+## 🏗️ Bygging og deploy
+
+### Produksjonsbygge
+
+```bash
+npm run build
+```
+Dette oppretter en optimalisert versjon i `build/`-mappen.
+
+### Deploy til produksjon
+
+1. **Bygg applikasjonen**
+   ```bash
+   npm run build
    ```
 
-3. **Create a new branch**  
-   Always make changes in a new branch:
-   ```sh
-   git checkout -b my-feature-branch
+2. **Test bygget lokalt**
+   ```bash
+   npx serve -s build
    ```
 
-4. **Add your changes**  
-   Stage the files you want to commit:
-   ```sh
-   git add .
+3. **Deploy til hosting-tjeneste**
+   - **Netlify**: Dra `build/`-mappen til Netlify
+   - **Vercel**: Koble til GitHub-repositoryet
+   - **Firebase**: Bruk Firebase Hosting
+   - **GitHub Pages**: Aktiver i repository-innstillinger
+
+### Miljøvariabler
+
+Opprett en `.env`-fil i prosjektroten:
+
+```env
+REACT_APP_API_URL=https://api.barnearbeid.no
+REACT_APP_FIREBASE_CONFIG=your_firebase_config
+```
+
+## 📖 Dokumentasjon
+
+### Komponenter
+
+#### Navbar.js
+Hovednavigasjon med responsive design og mobilmeny.
+
+#### Auth.js
+Autentiseringskomponent med innlogging og registrering.
+
+#### ServiceCard.js
+Kort-komponent for visning av tjenester i lister.
+
+### Sider
+
+#### Home.js
+Landingsside med hero-seksjon og funksjonsoversikt.
+
+#### Services.js
+Tjenestelisting med søk og filtrering.
+
+#### Profile.js
+Brukerprofil med innstillinger og statistikk.
+
+### API-integrasjon
+
+Prosjektet bruker Firebase for backend-tjenester:
+- **Authentication**: Brukerinnlogging og -registrering
+- **Firestore**: Database for tjenester og brukerdata
+- **Storage**: Filopplasting for bilder og dokumenter
+
+## 🤝 Bidrag
+
+Vi setter pris på alle bidrag! Her er hvordan du kan bidra:
+
+### Hvordan bidra
+
+1. **Fork repositoryet**
+2. **Opprett feature branch**
+   ```bash
+   git checkout -b feature/ny-funksjon
    ```
-
-5. **Commit your changes**  
-   Save your changes with a message:
-   ```sh
-   git commit -m "Describe your changes"
+3. **Gjør endringer** og test grundig
+4. **Commit endringer**
+   ```bash
+   git commit -m "Legg til ny funksjon: beskrivelse"
    ```
-
-6. **Pull the latest changes**  
-   Make sure your branch is up to date:
-   ```sh
-   git pull origin main
+5. **Push til din fork**
+   ```bash
+   git push origin feature/ny-funksjon
    ```
+6. **Opprett Pull Request**
 
-7. **Push your branch to GitHub**  
-   Upload your changes:
-   ```sh
-   git push origin my-feature-branch
-   ```
+### Bidragstyper
 
-8. **Create a Pull Request**  
-   Go to GitHub and open a Pull Request from your branch to `main`.
+- **Bug fixes**: Rapporter og fiks feil
+- **Nye funksjoner**: Foreslå og implementer nye funksjoner
+- **Dokumentasjon**: Forbedre README og kodekommentarer
+- **Testing**: Legg til tester og forbedre testdekning
+- **Design**: Forbedre brukergrensesnitt og brukeropplevelse
 
-## 🎨 Design System
+### Rapportering av feil
 
-### Colors
-- **Primary**: Blue (#3b82f6, #2563eb, #1d4ed8)
-- **Secondary**: Green (#22c55e, #16a34a)
-- **Neutral**: Gray scale for text and backgrounds
+Når du rapporterer feil, inkluder:
+- Beskrivelse av problemet
+- Steg for å reprodusere
+- Forventet vs faktisk oppførsel
+- Skjermbilde (hvis relevant)
+- Teknisk informasjon (nettleser, OS, etc.)
 
-### Components
-- **Buttons**: Primary and secondary variants with hover states
-- **Cards**: Consistent shadow and border styling
-- **Forms**: Input fields with focus states and validation
-- **Navigation**: Responsive navbar with mobile menu
+## 📄 Lisens
 
-## 📱 Responsive Design
+Dette prosjektet er lisensiert under MIT-lisensen. Se [LICENSE](LICENSE)-filen for detaljer.
 
-The application is fully responsive and optimized for:
-- Mobile devices (320px+)
-- Tablets (768px+)
-- Desktop (1024px+)
-- Large screens (1280px+)
+## 🙏 Takk
 
-## 🔮 Future Enhancements
+- **React-teamet** for det fantastiske rammeverket
+- **Tailwind CSS** for det fleksible styling-systemet
+- **Lucide** for de vakre ikonene
+- **Samfunnet** for bidrag og tilbakemeldinger
 
-- User authentication and authorization
-- Real-time messaging between users
-- Payment processing integration
-- Advanced search with location services
-- Review and rating system
-- Push notifications
-- Mobile app development
+---
 
-## 🤝 Contributing
+<div align="center">
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+**Bygget med ❤️ for norske unge og lokalsamfunn**
 
-## 📄 License
+[🚀 Kom i gang](#-kom-i-gang) • [📖 Dokumentasjon](#-dokumentasjon) • [🤝 Bidrag](#-bidrag)
 
-This project is licensed under the MIT License.
-
-## 🙏 Acknowledgments
-
-- Built with modern web technologies
-- Designed for youth empowerment and entrepreneurship
-- Connecting local communities through meaningful work opportunities
-
-- Thank you for reading!
+</div>

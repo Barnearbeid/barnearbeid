@@ -2,7 +2,7 @@
     "name": "barnearbeid",
   "version": "1.0.0",
   "description": "Youth on-demand platform - MVP",
-  "homepage": "https://ofurn.github.io/barnearbeid",
+  "homepage": "https://barnearbeid.github.io/barnearbeid",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.4",

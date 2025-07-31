@@ -96,6 +96,56 @@ src/
 - `npm test` - Launches the test runner
 - `npm eject` - Ejects from Create React App (one-way operation)
 
+## 📚 Git Quick Start
+
+To contribute to this project, you’ll need to use Git for version control. Here are the basic commands you’ll need:
+
+1. **Clone the repository**  
+   Download the project to your computer:
+   ```sh
+   git clone https://github.com/your-username/barnearbeid.git
+   cd barnearbeid
+   ```
+
+2. **Check the status of your files**  
+   See which files have changed:
+   ```sh
+   git status
+   ```
+
+3. **Create a new branch**  
+   Always make changes in a new branch:
+   ```sh
+   git checkout -b my-feature-branch
+   ```
+
+4. **Add your changes**  
+   Stage the files you want to commit:
+   ```sh
+   git add .
+   ```
+
+5. **Commit your changes**  
+   Save your changes with a message:
+   ```sh
+   git commit -m "Describe your changes"
+   ```
+
+6. **Pull the latest changes**  
+   Make sure your branch is up to date:
+   ```sh
+   git pull origin main
+   ```
+
+7. **Push your branch to GitHub**  
+   Upload your changes:
+   ```sh
+   git push origin my-feature-branch
+   ```
+
+8. **Create a Pull Request**  
+   Go to GitHub and open a Pull Request from your branch to `main`.
+
 ## 🎨 Design System
 
 ### Colors

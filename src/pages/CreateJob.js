@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, Plus, X } from 'lucide-react';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, doc, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { auth, db, storage } from '../firebase';
 
@@ -74,6 +74,10 @@ const CreateJob = () => {
 
     setLoading(true);
     try {
+      // Get user's name from users collection
+      const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+      const userName = userDoc.exists() ? userDoc.data().name : 'Ukjent tilbyder';
+
       // Upload images
       const imageUrls = [];
       for (const image of images) {
@@ -88,6 +92,7 @@ const CreateJob = () => {
         ...formData,
         images: imageUrls,
         userId: auth.currentUser.uid,
+        providerName: userName,
         createdAt: new Date(),
         status: 'active'
       };

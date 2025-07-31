@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Star, MapPin, Clock, Calendar, Plus } from 'lucide-react';
 
@@ -17,10 +17,31 @@ const Jobs = () => {
     try {
       const q = query(collection(db, 'jobs'), orderBy('createdAt', 'desc'));
       const querySnapshot = await getDocs(q);
-      const jobsData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const jobsData = await Promise.all(
+        querySnapshot.docs.map(async (doc) => {
+          const jobData = {
+            id: doc.id,
+            ...doc.data()
+          };
+          
+          // If job doesn't have providerName, fetch it from users collection
+          if (!jobData.providerName && jobData.userId) {
+            try {
+              const userDoc = await getDoc(doc(db, 'users', jobData.userId));
+              if (userDoc.exists()) {
+                jobData.providerName = userDoc.data().name;
+              } else {
+                jobData.providerName = 'Ukjent tilbyder';
+              }
+            } catch (error) {
+              console.error('Error fetching user name:', error);
+              jobData.providerName = 'Ukjent tilbyder';
+            }
+          }
+          
+          return jobData;
+        })
+      );
       setJobs(jobsData);
     } catch (error) {
       console.error('Error fetching jobs:', error);
@@ -178,6 +199,8 @@ const Jobs = () => {
                   <h3 className="text-xl font-semibold text-gray-900">{job.title}</h3>
                   <span className="text-2xl">{getCategoryIcon(job.category)}</span>
                 </div>
+                
+                <p className="text-gray-600 mb-2">av {job.providerName || 'Ukjent tilbyder'}</p>
                 
                 <p className="text-gray-600 mb-4 line-clamp-2">{job.description}</p>
                 

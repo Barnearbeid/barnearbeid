@@ -70,8 +70,11 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link to="/services" className="text-gray-600 hover:text-gray-900 transition-colors">
+            <Link to="/jobs" className="text-gray-600 hover:text-gray-900 transition-colors">
               Finn jobber
+            </Link>
+            <Link to="/services" className="text-gray-600 hover:text-gray-900 transition-colors">
+              Tjenester
             </Link>
             {!user && (
               <Link to="/create-service" className="text-gray-600 hover:text-gray-900 transition-colors">
@@ -98,7 +101,7 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
               <>
-                <Link to="/create-service" className="btn-secondary flex items-center space-x-2">
+                <Link to="/create-job" className="btn-secondary flex items-center space-x-2">
                   <Plus className="w-4 h-4" />
                   <span>Post jobb</span>
                 </Link>
@@ -144,16 +147,23 @@ const Navbar = () => {
           <div className="md:hidden py-4 border-t border-gray-200">
             <div className="space-y-4">
               <Link
-                to="/services"
+                to="/jobs"
                 className="block text-gray-600 hover:text-gray-900"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Finn jobber
               </Link>
+              <Link
+                to="/services"
+                className="block text-gray-600 hover:text-gray-900"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Tjenester
+              </Link>
               {user ? (
                 <>
                   <Link
-                    to="/create-service"
+                    to="/create-job"
                     className="block text-gray-600 hover:text-gray-900"
                     onClick={() => setIsMenuOpen(false)}
                   >

@@ -1,17 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, Filter, Star, MapPin, Clock, User, Briefcase } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { Search, Filter, Star, MapPin, Clock, User, Briefcase, ChevronLeft, ChevronRight } from 'lucide-react';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const Services = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('rating');
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
 
-  const categories = [
+  const categories = useMemo(() => [
     { id: 'all', name: 'Alle kategorier' },
     { id: 'cleaning', name: 'Rengjøring' },
     { id: 'pet-care', name: 'Dyrepass' },
@@ -19,11 +23,16 @@ const Services = () => {
     { id: 'gardening', name: 'Hagearbeid' },
     { id: 'tech-help', name: 'Teknisk hjelp' },
     { id: 'babysitting', name: 'Barnepass' }
-  ];
+  ], []);
 
   useEffect(() => {
+    // Check for search parameter in URL
+    const urlSearch = searchParams.get('search');
+    if (urlSearch) {
+      setSearchTerm(urlSearch);
+    }
     fetchServices();
-  }, []);
+  }, [searchParams]);
 
   const fetchServices = async () => {
     try {
@@ -41,38 +50,74 @@ const Services = () => {
     }
   };
 
-  const filteredServices = services.filter(service => {
-    const matchesSearch = service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         service.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || service.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const filteredServices = useMemo(() => {
+    return services.filter(service => {
+      const matchesSearch = service.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         service.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         service.providerName?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = selectedCategory === 'all' || service.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [services, searchTerm, selectedCategory]);
 
-  const sortedServices = [...filteredServices].sort((a, b) => {
-    switch (sortBy) {
-      case 'rating':
-        return (b.averageRating || 0) - (a.averageRating || 0);
-      case 'price-low':
-        return parseInt(a.price) - parseInt(b.price);
-      case 'price-high':
-        return parseInt(b.price) - parseInt(a.price);
-      default:
-        return 0;
-    }
-  });
+  const sortedServices = useMemo(() => {
+    return [...filteredServices].sort((a, b) => {
+      switch (sortBy) {
+        case 'rating':
+          return (b.averageRating || 0) - (a.averageRating || 0);
+        case 'price-low':
+          return parseInt(a.price) - parseInt(b.price);
+        case 'price-high':
+          return parseInt(b.price) - parseInt(a.price);
+        default:
+          return 0;
+      }
+    });
+  }, [filteredServices, sortBy]);
 
-  const getUserTypeLabel = (userType) => {
+  // Pagination logic
+  const totalPages = Math.ceil(sortedServices.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentServices = sortedServices.slice(startIndex, endIndex);
+
+  const getUserTypeLabel = useMemo(() => (userType) => {
     return userType === 'seeker' ? 'Jobbsøker' : 'Jobbposter';
+  }, []);
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    setCurrentPage(1); // Reset to first page when searching
+    
+    // Update URL with search parameter
+    if (value.trim()) {
+      setSearchParams({ search: value });
+    } else {
+      setSearchParams({});
+    }
+  };
+
+  const handleCategoryChange = (e) => {
+    setSelectedCategory(e.target.value);
+    setCurrentPage(1); // Reset to first page when changing category
+  };
+
+  const handleSortChange = (e) => {
+    setSortBy(e.target.value);
+    setCurrentPage(1); // Reset to first page when changing sort
+  };
+
+  const goToPage = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Laster tjenester...</p>
-          </div>
+          <LoadingSpinner size="lg" text="Laster tjenester..." />
         </div>
       </div>
     );
@@ -98,7 +143,7 @@ const Services = () => {
                   type="text"
                   placeholder="Søk etter tjenester, tilbydere..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={handleSearchChange}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
@@ -108,7 +153,7 @@ const Services = () => {
             <div>
               <select
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
+                onChange={handleCategoryChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 {categories.map(category => (
@@ -123,7 +168,7 @@ const Services = () => {
             <div>
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+                onChange={handleSortChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 <option value="rating">Sorter etter rating</option>
@@ -137,79 +182,124 @@ const Services = () => {
         {/* Results */}
         <div className="mb-6">
           <p className="text-gray-600">
-            Viser {sortedServices.length} av {services.length} tjenester
+            Viser {startIndex + 1}-{Math.min(endIndex, sortedServices.length)} av {sortedServices.length} tjenester
+            {searchTerm && ` for "${searchTerm}"`}
           </p>
         </div>
 
         {/* Services Grid */}
-        {sortedServices.length === 0 ? (
+        {currentServices.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">📝</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Ingen tjenester ennå</h3>
-            <p className="text-gray-600 mb-6">Det er ingen tjenester postet ennå. Vær den første!</p>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              {searchTerm ? 'Ingen resultater funnet' : 'Ingen tjenester ennå'}
+            </h3>
+            <p className="text-gray-600 mb-6">
+              {searchTerm 
+                ? `Ingen tjenester matcher "${searchTerm}". Prøv et annet søkeord.`
+                : 'Det er ingen tjenester postet ennå. Vær den første!'
+              }
+            </p>
             <Link to="/create-service" className="btn-primary">
               Post første tjeneste
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sortedServices.map((service) => (
-              <Link
-                key={service.id}
-                to={`/services/${service.id}`}
-                className="card hover:shadow-xl transition-shadow duration-200"
-              >
-                {service.images && service.images.length > 0 && (
-                  <img
-                    src={service.images[0]}
-                    alt={service.title}
-                    className="w-full h-48 object-cover rounded-lg mb-4"
-                  />
-                )}
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="text-xl font-semibold text-gray-900">{service.title}</h3>
-                  <span className="text-lg font-semibold text-primary-600">{service.price} kr</span>
-                </div>
-                
-                {/* Provider info with user type */}
-                <div className="flex items-center space-x-2 mb-3">
-                  <span className="text-gray-600">av</span>
-                  <span className="font-medium">{service.providerName || 'Ukjent tilbyder'}</span>
-                  <div className="flex items-center space-x-1">
-                    {service.providerType === 'seeker' ? (
-                      <User className="w-4 h-4 text-blue-600" />
-                    ) : (
-                      <Briefcase className="w-4 h-4 text-green-600" />
-                    )}
-                    <span className="text-xs text-gray-500">
-                      {getUserTypeLabel(service.providerType)}
-                    </span>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {currentServices.map((service) => (
+                <Link
+                  key={service.id}
+                  to={`/services/${service.id}`}
+                  className="card hover:shadow-xl transition-shadow duration-200"
+                >
+                  {service.images && service.images.length > 0 && (
+                    <img
+                      src={service.images[0]}
+                      alt={service.title}
+                      className="w-full h-48 object-cover rounded-lg mb-4"
+                    />
+                  )}
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="text-xl font-semibold text-gray-900">{service.title}</h3>
+                    <span className="text-lg font-semibold text-primary-600">{service.price} kr</span>
                   </div>
-                </div>
-                
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{service.description}</p>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center text-sm text-gray-600">
-                    <MapPin className="w-4 h-4 mr-1" />
-                    {service.location}
+                  
+                  {/* Provider info with user type */}
+                  <div className="flex items-center space-x-2 mb-3">
+                    <span className="text-gray-600">av</span>
+                    <span className="font-medium">{service.providerName || 'Ukjent tilbyder'}</span>
+                    <div className="flex items-center space-x-1">
+                      {service.providerType === 'seeker' ? (
+                        <User className="w-4 h-4 text-blue-600" />
+                      ) : (
+                        <Briefcase className="w-4 h-4 text-green-600" />
+                      )}
+                      <span className="text-xs text-gray-500">
+                        {getUserTypeLabel(service.providerType)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center text-sm text-gray-600">
+                  
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">{service.description}</p>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center text-sm text-gray-600">
+                      <MapPin className="w-4 h-4 mr-1" />
+                      {service.location}
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Clock className="w-4 h-4 mr-1" />
+                      {service.duration || 'Fleksibel'}
+                    </div>
+                  </div>
+                  
+                  <div className="mt-3 flex items-center text-sm text-green-600">
                     <Clock className="w-4 h-4 mr-1" />
-                    {service.duration || 'Fleksibel'}
+                    Tilgjengelig nå
                   </div>
-                </div>
-                
-                <div className="mt-3 flex items-center text-sm text-green-600">
-                  <Clock className="w-4 h-4 mr-1" />
-                  Tilgjengelig nå
-                </div>
-              </Link>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-12 flex justify-center">
+                <nav className="flex items-center space-x-2">
+                  <button
+                    onClick={() => goToPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-3 py-2 text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => goToPage(page)}
+                      className={`px-3 py-2 rounded-md ${
+                        currentPage === page
+                          ? 'bg-primary-600 text-white'
+                          : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  
+                  <button
+                    onClick={() => goToPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-2 text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </nav>
+              </div>
+            )}
+          </>
         )}
-
-
       </div>
     </div>
   );

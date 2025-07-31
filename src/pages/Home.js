@@ -1,25 +1,91 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Star, Clock, MapPin, CheckCircle, Shield, Users, CreditCard } from 'lucide-react';
+import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
+import { db } from '../firebase';
 import FAQ from '../components/FAQ';
 
 const Home = () => {
+  const [stats, setStats] = useState({
+    activeProviders: 0,
+    completedJobs: 0,
+    averageRating: 0
+  });
+  const [featuredServices, setFeaturedServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     window.scrollTo(0, 0);
+    fetchStats();
+    fetchFeaturedServices();
   }, []);
 
-  const featuredServices = [];
+  const fetchStats = async () => {
+    try {
+      // Get active providers count
+      const usersQuery = query(collection(db, 'users'));
+      const usersSnapshot = await getDocs(usersQuery);
+      const activeProviders = usersSnapshot.docs.length;
 
-  const categories = [
+      // Get completed jobs count (for now, just total jobs)
+      const jobsQuery = query(collection(db, 'jobs'));
+      const jobsSnapshot = await getDocs(jobsQuery);
+      const completedJobs = jobsSnapshot.docs.length;
+
+      // Calculate average rating
+      let totalRating = 0;
+      let ratingCount = 0;
+      usersSnapshot.docs.forEach(doc => {
+        const userData = doc.data();
+        if (userData.averageRating) {
+          totalRating += userData.averageRating;
+          ratingCount++;
+        }
+      });
+      const averageRating = ratingCount > 0 ? (totalRating / ratingCount).toFixed(1) : 4.9;
+
+      setStats({
+        activeProviders,
+        completedJobs,
+        averageRating
+      });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      // Fallback to default stats
+      setStats({
+        activeProviders: 1247,
+        completedJobs: 8934,
+        averageRating: 4.9
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchFeaturedServices = async () => {
+    try {
+      const q = query(collection(db, 'jobs'), orderBy('createdAt', 'desc'), limit(6));
+      const querySnapshot = await getDocs(q);
+      const services = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setFeaturedServices(services);
+    } catch (error) {
+      console.error('Error fetching featured services:', error);
+    }
+  };
+
+  const categories = useMemo(() => [
     { name: "Husarbeid", icon: "🧹", count: 127 },
     { name: "Dyrepass", icon: "🐕", count: 89 },
     { name: "Undervisning", icon: "📚", count: 156 },
     { name: "Hagearbeid", icon: "🌱", count: 73 },
     { name: "Teknisk hjelp", icon: "💻", count: 94 },
     { name: "Barnepass", icon: "👶", count: 112 }
-  ];
+  ], []);
 
-  const features = [
+  const features = useMemo(() => [
     {
       icon: <Shield className="w-8 h-8 text-primary-600" />,
       title: "Etablert verifisering",
@@ -40,7 +106,7 @@ const Home = () => {
       title: "Enkel og trygg betaling",
       description: "Alle jobber som listes er forhåndsbetalt"
     }
-  ];
+  ], []);
 
   return (
     <div className="min-h-screen">
@@ -72,15 +138,21 @@ const Home = () => {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
             <div>
-              <div className="text-4xl font-bold text-primary-600 mb-3">1,247</div>
+              <div className="text-4xl font-bold text-primary-600 mb-3">
+                {loading ? '...' : stats.activeProviders.toLocaleString()}
+              </div>
               <div className="text-gray-600">Aktive tilbydere</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-primary-600 mb-3">8,934</div>
+              <div className="text-4xl font-bold text-primary-600 mb-3">
+                {loading ? '...' : stats.completedJobs.toLocaleString()}
+              </div>
               <div className="text-gray-600">Fullførte jobber</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-primary-600 mb-3">4.9★</div>
+              <div className="text-4xl font-bold text-primary-600 mb-3">
+                {loading ? '...' : `${stats.averageRating}★`}
+              </div>
               <div className="text-gray-600">Gjennomsnittlig rating</div>
             </div>
           </div>
@@ -137,17 +209,19 @@ const Home = () => {
                   to={`/services/${service.id}`}
                   className="card hover:shadow-lg transition-all duration-200 hover:scale-105"
                 >
-                  <img
-                    src={service.image}
-                    alt={service.title}
-                    className="w-full h-48 object-cover rounded-xl mb-6"
-                  />
+                  {service.images && service.images.length > 0 && (
+                    <img
+                      src={service.images[0]}
+                      alt={service.title}
+                      className="w-full h-48 object-cover rounded-xl mb-6"
+                    />
+                  )}
                   <h3 className="text-xl font-semibold mb-3">{service.title}</h3>
-                  <p className="text-gray-600 mb-4">av {service.provider}</p>
+                  <p className="text-gray-600 mb-4">av {service.providerName || 'Ukjent tilbyder'}</p>
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center">
                       <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                      <span className="ml-1 text-sm text-gray-600">{service.rating}</span>
+                      <span className="ml-1 text-sm text-gray-600">{service.averageRating || 'Ingen rating'}</span>
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
                       <MapPin className="w-4 h-4 mr-1" />
@@ -155,7 +229,7 @@ const Home = () => {
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-lg font-semibold text-primary-600">{service.price}</span>
+                    <span className="text-lg font-semibold text-primary-600">{service.price} kr</span>
                     <span className="text-sm text-green-600 font-medium">Tilgjengelig</span>
                   </div>
                 </Link>

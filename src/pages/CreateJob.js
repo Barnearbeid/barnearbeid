@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, Plus, X } from 'lucide-react';
-import { collection, addDoc, doc, getDoc } from 'firebase/firestore';
+import { collection, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { auth, db, storage } from '../firebase';
 
@@ -9,7 +9,7 @@ const CreateJob = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: '',
-    category: '',
+    categories: [],
     description: '',
     price: '',
     location: '',
@@ -21,13 +21,24 @@ const CreateJob = () => {
   const [loading, setLoading] = useState(false);
 
   const categories = [
-    { id: 'cleaning', name: 'Husarbeid', icon: '🧹' },
+    { id: 'grass-cutting', name: 'Klippe gress', icon: '🌿' },
+    { id: 'weed-removal', name: 'Fjerne ugress', icon: '🌱' },
+    { id: 'bark-soil', name: 'Legge bark eller ny jord', icon: '🪴' },
+    { id: 'hedge-cutting', name: 'Klippe hekk', icon: '🌳' },
+    { id: 'garbage-disposal', name: 'Kjøre søppel', icon: '🗑️' },
+    { id: 'pressure-washing', name: 'Spyle', icon: '💦' },
+    { id: 'cleaning', name: 'Rengjøre', icon: '🧹' },
+    { id: 'window-washing', name: 'Vaske vinduer', icon: '🪟' },
+    { id: 'heavy-lifting', name: 'Bærejobb', icon: '🏋️' },
+    { id: 'painting', name: 'Male', icon: '🎨' },
+    { id: 'staining', name: 'Beise', icon: '🪵' },
+    { id: 'repair', name: 'Reparere', icon: '🔧' },
+    { id: 'organizing', name: 'Rydde', icon: '📦' },
+    { id: 'car-washing', name: 'Vaske bilen', icon: '🚗' },
+    { id: 'snow-shoveling', name: 'Snømåking', icon: '❄️' },
+    { id: 'moving-help', name: 'Hjelpe med flytting', icon: '📦' },
+    { id: 'salt-sand', name: 'Strø med sand / salt', icon: '🧂' },
     { id: 'pet-care', name: 'Dyrepass', icon: '🐕' },
-    { id: 'tutoring', name: 'Undervisning', icon: '📚' },
-    { id: 'gardening', name: 'Hagearbeid', icon: '🌱' },
-    { id: 'tech-help', name: 'Teknisk hjelp', icon: '💻' },
-    { id: 'babysitting', name: 'Barnepass', icon: '👶' },
-    { id: 'cooking', name: 'Matlaging', icon: '👨‍🍳' },
     { id: 'other', name: 'Annet', icon: '✨' }
   ];
 
@@ -36,6 +47,15 @@ const CreateJob = () => {
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  const handleCategoryToggle = (categoryId) => {
+    setFormData(prev => ({
+      ...prev,
+      categories: prev.categories.includes(categoryId)
+        ? prev.categories.filter(id => id !== categoryId)
+        : [...prev.categories, categoryId]
     }));
   };
 
@@ -71,13 +91,14 @@ const CreateJob = () => {
       alert('Du må være logget inn for å opprette en jobb');
       return;
     }
+    
+    if (formData.categories.length === 0) {
+      alert('Du må velge minst én kategori');
+      return;
+    }
 
     setLoading(true);
     try {
-      // Get user's name from users collection
-      const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
-      const userName = userDoc.exists() ? userDoc.data().name : 'Ukjent tilbyder';
-
       // Upload images
       const imageUrls = [];
       for (const image of images) {
@@ -92,7 +113,6 @@ const CreateJob = () => {
         ...formData,
         images: imageUrls,
         userId: auth.currentUser.uid,
-        providerName: userName,
         createdAt: new Date(),
         status: 'active'
       };
@@ -137,24 +157,34 @@ const CreateJob = () => {
                 />
               </div>
 
-              <div>
+              <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Kategori *
+                  Kategorier *
                 </label>
-                <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  className="input-field"
-                  required
-                >
-                  <option value="">Velg kategori</option>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                   {categories.map(category => (
-                    <option key={category.id} value={category.id}>
-                      {category.icon} {category.name}
-                    </option>
+                    <label
+                      key={category.id}
+                      className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer transition-colors ${
+                        formData.categories.includes(category.id)
+                          ? 'border-primary-600 bg-primary-50 text-primary-700'
+                          : 'border-gray-300 hover:border-gray-400'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={formData.categories.includes(category.id)}
+                        onChange={() => handleCategoryToggle(category.id)}
+                        className="sr-only"
+                      />
+                      <span className="text-lg">{category.icon}</span>
+                      <span className="text-sm font-medium">{category.name}</span>
+                    </label>
                   ))}
-                </select>
+                </div>
+                {formData.categories.length === 0 && (
+                  <p className="text-red-500 text-sm mt-2">Velg minst én kategori</p>
+                )}
               </div>
 
               <div>

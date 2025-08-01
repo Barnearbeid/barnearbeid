@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, User, Plus, Menu, X, LogOut, MessageCircle } from 'lucide-react';
+import { Search, User, Plus, Menu, X, LogOut } from 'lucide-react';
 import { auth, db } from '../firebase';
 import { signOut } from 'firebase/auth';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
@@ -10,7 +10,7 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [showAuth, setShowAuth] = useState(false);
-  const [unreadMessages, setUnreadMessages] = useState(0);
+  const [unreadConversations, setUnreadConversations] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
 
@@ -18,15 +18,15 @@ const Navbar = () => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       setUser(user);
       if (user) {
-        fetchUnreadMessages(user.uid);
+        fetchUnreadConversations(user.uid);
       } else {
-        setUnreadMessages(0);
+        setUnreadConversations(0);
       }
     });
     return unsubscribe;
   }, []);
 
-  const fetchUnreadMessages = (userId) => {
+  const fetchUnreadConversations = (userId) => {
     const q = query(
       collection(db, 'messages'),
       where('toUserId', '==', userId),
@@ -34,7 +34,12 @@ const Navbar = () => {
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setUnreadMessages(snapshot.docs.length);
+      // Count unique senders with unread messages
+      const uniqueSenders = new Set();
+      snapshot.docs.forEach(doc => {
+        uniqueSenders.add(doc.data().fromUserId);
+      });
+      setUnreadConversations(uniqueSenders.size);
     });
 
     return unsubscribe;
@@ -70,11 +75,8 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link to="/jobs" className="text-gray-600 hover:text-gray-900 transition-colors">
-              Finn jobber
-            </Link>
             <Link to="/services" className="text-gray-600 hover:text-gray-900 transition-colors">
-              Tjenester
+              Finn jobber
             </Link>
             {!user && (
               <Link to="/create-service" className="text-gray-600 hover:text-gray-900 transition-colors">
@@ -101,15 +103,15 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
               <>
-                <Link to="/create-job" className="btn-secondary flex items-center space-x-2">
+                <Link to="/create-service" className="btn-secondary flex items-center space-x-2">
                   <Plus className="w-4 h-4" />
                   <span>Post jobb</span>
                 </Link>
                 <Link to="/profile" className="p-2 text-gray-600 hover:text-gray-900 transition-colors relative">
                   <User className="w-5 h-5" />
-                  {unreadMessages > 0 && (
+                  {unreadConversations > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                      {unreadMessages > 9 ? '9+' : unreadMessages}
+                      {unreadConversations > 9 ? '9+' : unreadConversations}
                     </span>
                   )}
                 </Link>
@@ -147,23 +149,16 @@ const Navbar = () => {
           <div className="md:hidden py-4 border-t border-gray-200">
             <div className="space-y-4">
               <Link
-                to="/jobs"
+                to="/services"
                 className="block text-gray-600 hover:text-gray-900"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Finn jobber
               </Link>
-              <Link
-                to="/services"
-                className="block text-gray-600 hover:text-gray-900"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Tjenester
-              </Link>
               {user ? (
                 <>
                   <Link
-                    to="/create-job"
+                    to="/create-service"
                     className="block text-gray-600 hover:text-gray-900"
                     onClick={() => setIsMenuOpen(false)}
                   >
@@ -175,9 +170,9 @@ const Navbar = () => {
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <span>Profil</span>
-                    {unreadMessages > 0 && (
+                    {unreadConversations > 0 && (
                       <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                        {unreadMessages > 9 ? '9+' : unreadMessages}
+                        {unreadConversations > 9 ? '9+' : unreadConversations}
                       </span>
                     )}
                   </Link>

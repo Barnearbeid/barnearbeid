@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { MapPin, Clock, Calendar, ArrowLeft, Star, User, Briefcase } from 'lucide-react';
+import { MapPin, Clock, Calendar, ArrowLeft, User } from 'lucide-react';
 
 const JobDetail = () => {
   const { id } = useParams();
@@ -53,13 +53,24 @@ const JobDetail = () => {
 
   const getCategoryIcon = (category) => {
     const icons = {
+      'grass-cutting': '🌿',
+      'weed-removal': '🌱',
+      'bark-soil': '🪴',
+      'hedge-cutting': '🌳',
+      'garbage-disposal': '🗑️',
+      'pressure-washing': '💦',
       'cleaning': '🧹',
+      'window-washing': '🪟',
+      'heavy-lifting': '🏋️',
+      'painting': '🎨',
+      'staining': '🪵',
+      'repair': '🔧',
+      'organizing': '📦',
+      'car-washing': '🚗',
+      'snow-shoveling': '❄️',
+      'moving-help': '📦',
+      'salt-sand': '🧂',
       'pet-care': '🐕',
-      'tutoring': '📚',
-      'gardening': '🌱',
-      'tech-help': '💻',
-      'babysitting': '👶',
-      'cooking': '👨‍🍳',
       'other': '✨'
     };
     return icons[category] || '✨';
@@ -67,13 +78,24 @@ const JobDetail = () => {
 
   const getCategoryName = (category) => {
     const names = {
-      'cleaning': 'Husarbeid',
+      'grass-cutting': 'Klippe gress',
+      'weed-removal': 'Fjerne ugress',
+      'bark-soil': 'Legge bark eller ny jord',
+      'hedge-cutting': 'Klippe hekk',
+      'garbage-disposal': 'Kjøre søppel',
+      'pressure-washing': 'Spyle',
+      'cleaning': 'Rengjøre',
+      'window-washing': 'Vaske vinduer',
+      'heavy-lifting': 'Bærejobb',
+      'painting': 'Male',
+      'staining': 'Beise',
+      'repair': 'Reparere',
+      'organizing': 'Rydde',
+      'car-washing': 'Vaske bilen',
+      'snow-shoveling': 'Snømåking',
+      'moving-help': 'Hjelpe med flytting',
+      'salt-sand': 'Strø med sand / salt',
       'pet-care': 'Dyrepass',
-      'tutoring': 'Undervisning',
-      'gardening': 'Hagearbeid',
-      'tech-help': 'Teknisk hjelp',
-      'babysitting': 'Barnepass',
-      'cooking': 'Matlaging',
       'other': 'Annet'
     };
     return names[category] || 'Annet';
@@ -116,6 +138,13 @@ const JobDetail = () => {
     return null;
   }
 
+  // Get categories to display
+  const displayCategories = job.categories && Array.isArray(job.categories) 
+    ? job.categories 
+    : job.category 
+      ? [job.category] 
+      : [];
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -134,10 +163,21 @@ const JobDetail = () => {
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
                 <div className="flex items-center space-x-3 mb-2">
-                  <span className="text-3xl">{getCategoryIcon(job.category)}</span>
-                  <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                    {getCategoryName(job.category)}
-                  </span>
+                  <div className="flex space-x-1">
+                    {displayCategories.slice(0, 3).map((cat, index) => (
+                      <span key={index} className="text-2xl">{getCategoryIcon(cat)}</span>
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {displayCategories.map((cat, index) => (
+                      <span
+                        key={index}
+                        className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full"
+                      >
+                        {getCategoryName(cat)}
+                      </span>
+                    ))}
+                  </div>
                 </div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">{job.title}</h1>
                 <p className="text-gray-600">av {job.providerName || 'Ukjent tilbyder'}</p>

@@ -2,47 +2,47 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, Plus, X } from 'lucide-react';
 import { collection, addDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { auth, db, storage } from '../firebase';
 
 const CreateService = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: '',
-    category: '',
+    categories: [],
     description: '',
     price: '',
     location: '',
-    experience: '',
-    languages: [],
-    certifications: [],
-    availability: {
-      monday: { available: false, start: '09:00', end: '17:00' },
-      tuesday: { available: false, start: '09:00', end: '17:00' },
-      wednesday: { available: false, start: '09:00', end: '17:00' },
-      thursday: { available: false, start: '09:00', end: '17:00' },
-      friday: { available: false, start: '09:00', end: '17:00' },
-      saturday: { available: false, start: '09:00', end: '17:00' },
-      sunday: { available: false, start: '09:00', end: '17:00' }
-    }
+    jobType: 'one-time', // 'one-time' or 'recurring'
+    pricingType: 'hourly', // 'hourly' or 'fixed'
+    needsCar: 'no', // 'yes' or 'no'
+    needsEquipment: 'no' // 'yes' or 'no'
   });
 
-  const [newLanguage, setNewLanguage] = useState('');
-  const [newCertification, setNewCertification] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [files, setFiles] = useState([]);
+  const [uploading, setUploading] = useState(false);
 
   const categories = [
-    { id: 'cleaning', name: 'Rengjøring', icon: '🧹' },
+    { id: 'grass-cutting', name: 'Klippe gress', icon: '🌿' },
+    { id: 'weed-removal', name: 'Fjerne ugress', icon: '🌱' },
+    { id: 'bark-soil', name: 'Legge bark eller ny jord', icon: '🪴' },
+    { id: 'hedge-cutting', name: 'Klippe hekk', icon: '🌳' },
+    { id: 'garbage-disposal', name: 'Kjøre søppel', icon: '🗑️' },
+    { id: 'pressure-washing', name: 'Spyle', icon: '💦' },
+    { id: 'cleaning', name: 'Rengjøre', icon: '🧹' },
+    { id: 'window-washing', name: 'Vaske vinduer', icon: '🪟' },
+    { id: 'heavy-lifting', name: 'Bærejobb', icon: '🏋️' },
+    { id: 'painting', name: 'Male', icon: '🎨' },
+    { id: 'staining', name: 'Beise', icon: '🪵' },
+    { id: 'repair', name: 'Reparere', icon: '🔧' },
+    { id: 'organizing', name: 'Rydde', icon: '📦' },
+    { id: 'car-washing', name: 'Vaske bilen', icon: '🚗' },
+    { id: 'snow-shoveling', name: 'Snømåking', icon: '❄️' },
+    { id: 'moving-help', name: 'Hjelpe med flytting', icon: '📦' },
+    { id: 'salt-sand', name: 'Strø med sand / salt', icon: '🧂' },
     { id: 'pet-care', name: 'Dyrepass', icon: '🐕' },
-    { id: 'tutoring', name: 'Undervisning', icon: '📚' },
-    { id: 'gardening', name: 'Hagearbeid', icon: '🌱' },
-    { id: 'tech-help', name: 'Teknisk hjelp', icon: '💻' },
-    { id: 'babysitting', name: 'Barnepass', icon: '👶' },
-    { id: 'cooking', name: 'Matlaging', icon: '👨‍🍳' },
-    { id: 'photography', name: 'Fotografering', icon: '📸' },
-    { id: 'music', name: 'Musikkundervisning', icon: '🎵' },
-    { id: 'sports', name: 'Idrettscoaching', icon: '⚽' },
-    { id: 'art', name: 'Kunst & Håndverk', icon: '🎨' },
     { id: 'other', name: 'Annet', icon: '✨' }
   ];
 
@@ -54,51 +54,74 @@ const CreateService = () => {
     }));
   };
 
-  const handleAvailabilityChange = (day, field, value) => {
+  const handleCategoryToggle = (categoryId) => {
     setFormData(prev => ({
       ...prev,
-      availability: {
-        ...prev.availability,
-        [day]: {
-          ...prev.availability[day],
-          [field]: value
-        }
+      categories: prev.categories.includes(categoryId)
+        ? prev.categories.filter(id => id !== categoryId)
+        : [...prev.categories, categoryId]
+    }));
+  };
+
+  const handleJobTypeChange = (jobType) => {
+    setFormData(prev => ({
+      ...prev,
+      jobType: jobType
+    }));
+  };
+
+  const handleRadioChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleFileSelect = (e) => {
+    const selectedFiles = Array.from(e.target.files);
+    const validFiles = selectedFiles.filter(file => {
+      const isValidType = file.type.startsWith('image/') || file.type.startsWith('video/');
+      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB limit
+      return isValidType && isValidSize;
+    });
+    
+    if (validFiles.length !== selectedFiles.length) {
+      alert('Noen filer ble ikke lagt til. Kun bilder og videoer under 10MB er tillatt.');
+    }
+    
+    setFiles(prev => [...prev, ...validFiles]);
+  };
+
+  const removeFile = (index) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadFiles = async () => {
+    if (files.length === 0) return [];
+    
+    setUploading(true);
+    const uploadedUrls = [];
+    
+    try {
+      for (const file of files) {
+        const fileName = `${Date.now()}_${file.name}`;
+        const storageRef = ref(storage, `services/${fileName}`);
+        await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(storageRef);
+        uploadedUrls.push({
+          url: downloadURL,
+          type: file.type.startsWith('image/') ? 'image' : 'video',
+          name: file.name
+        });
       }
-    }));
-  };
-
-  const addLanguage = () => {
-    if (newLanguage.trim() && !formData.languages.includes(newLanguage.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        languages: [...prev.languages, newLanguage.trim()]
-      }));
-      setNewLanguage('');
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      throw new Error('Feil ved opplasting av filer');
+    } finally {
+      setUploading(false);
     }
-  };
-
-  const removeLanguage = (language) => {
-    setFormData(prev => ({
-      ...prev,
-      languages: prev.languages.filter(l => l !== language)
-    }));
-  };
-
-  const addCertification = () => {
-    if (newCertification.trim() && !formData.certifications.includes(newCertification.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        certifications: [...prev.certifications, newCertification.trim()]
-      }));
-      setNewCertification('');
-    }
-  };
-
-  const removeCertification = (certification) => {
-    setFormData(prev => ({
-      ...prev,
-      certifications: prev.certifications.filter(c => c !== certification)
-    }));
+    
+    return uploadedUrls;
   };
 
   const handleSubmit = async (e) => {
@@ -108,11 +131,24 @@ const CreateService = () => {
       alert('Du må være logget inn for å opprette en tjeneste');
       return;
     }
+    
+    if (formData.categories.length === 0) {
+      alert('Du må velge minst én kategori');
+      return;
+    }
+    
+    if (!formData.jobType) {
+      alert('Du må velge type jobb');
+      return;
+    }
 
     setLoading(true);
     setError('');
 
     try {
+      // Upload files first
+      const uploadedFiles = await uploadFiles();
+      
       // Prepare the job data
       const jobData = {
         ...formData,
@@ -123,7 +159,7 @@ const CreateService = () => {
         price: parseInt(formData.price),
         createdAt: new Date(),
         status: 'active',
-        images: [], // Will be implemented later
+        files: uploadedFiles,
         averageRating: 0,
         reviewCount: 0,
         reviews: []
@@ -179,36 +215,146 @@ const CreateService = () => {
                 />
               </div>
 
-              <div>
+              <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Kategori *
+                  Kategorier *
                 </label>
-                <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  className="input-field"
-                  required
-                >
-                  <option value="">Velg en kategori</option>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                   {categories.map(category => (
-                    <option key={category.id} value={category.id}>
-                      {category.icon} {category.name}
-                    </option>
+                    <label
+                      key={category.id}
+                      className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer transition-colors ${
+                        formData.categories.includes(category.id)
+                          ? 'border-primary-600 bg-primary-50 text-primary-700'
+                          : 'border-gray-300 hover:border-gray-400'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={formData.categories.includes(category.id)}
+                        onChange={() => handleCategoryToggle(category.id)}
+                        className="sr-only"
+                      />
+                      <span className="text-lg">{category.icon}</span>
+                      <span className="text-sm font-medium">{category.name}</span>
+                    </label>
                   ))}
-                </select>
+                </div>
+                {formData.categories.length === 0 && (
+                  <p className="text-red-500 text-sm mt-2">Velg minst én kategori</p>
+                )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Pris per time (NOK) *
+                  Type jobb *
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <label
+                    className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer transition-colors ${
+                      formData.jobType === 'one-time'
+                        ? 'border-primary-600 bg-primary-50 text-primary-700'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="jobType"
+                      value="one-time"
+                      checked={formData.jobType === 'one-time'}
+                      onChange={() => handleJobTypeChange('one-time')}
+                      className="sr-only"
+                    />
+                    <span className="text-lg">🔨</span>
+                    <div>
+                      <span className="text-sm font-medium">Engangsjobb</span>
+                      <p className="text-xs text-gray-500">Enkelt oppdrag</p>
+                    </div>
+                  </label>
+                  <label
+                    className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer transition-colors ${
+                      formData.jobType === 'recurring'
+                        ? 'border-primary-600 bg-primary-50 text-primary-700'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="jobType"
+                      value="recurring"
+                      checked={formData.jobType === 'recurring'}
+                      onChange={() => handleJobTypeChange('recurring')}
+                      className="sr-only"
+                    />
+                    <span className="text-lg">🔄</span>
+                    <div>
+                      <span className="text-sm font-medium">Gjentakende jobb</span>
+                      <p className="text-xs text-gray-500">Regelmessig arbeid</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Prisetype *
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <label
+                    className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer transition-colors ${
+                      formData.pricingType === 'hourly'
+                        ? 'border-primary-600 bg-primary-50 text-primary-700'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="pricingType"
+                      value="hourly"
+                      checked={formData.pricingType === 'hourly'}
+                      onChange={() => handleRadioChange('pricingType', 'hourly')}
+                      className="sr-only"
+                    />
+                    <span className="text-lg">⏰</span>
+                    <div>
+                      <span className="text-sm font-medium">Timebetalt</span>
+                      <p className="text-xs text-gray-500">Per time</p>
+                    </div>
+                  </label>
+                  <label
+                    className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer transition-colors ${
+                      formData.pricingType === 'fixed'
+                        ? 'border-primary-600 bg-primary-50 text-primary-700'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="pricingType"
+                      value="fixed"
+                      checked={formData.pricingType === 'fixed'}
+                      onChange={() => handleRadioChange('pricingType', 'fixed')}
+                      className="sr-only"
+                    />
+                    <span className="text-lg">💰</span>
+                    <div>
+                      <span className="text-sm font-medium">Fastpris</span>
+                      <p className="text-xs text-gray-500">Fast beløp</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {formData.pricingType === 'hourly' ? 'Pris per time (NOK)' : 'Fastpris (NOK)'} *
                 </label>
                 <input
                   type="number"
                   name="price"
                   value={formData.price}
                   onChange={handleInputChange}
-                  placeholder="150"
+                  placeholder={formData.pricingType === 'hourly' ? "150" : "500"}
                   className="input-field"
                   required
                 />
@@ -246,168 +392,193 @@ const CreateService = () => {
             </div>
           </div>
 
-          {/* Experience & Skills */}
+          {/* Job Requirements */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold mb-6">Erfaring og ferdigheter</h2>
+            <h2 className="text-xl font-semibold mb-6">Jobbkrav</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  År med erfaring
+                  Bil kreves
                 </label>
-                <input
-                  type="text"
-                  name="experience"
-                  value={formData.experience}
-                  onChange={handleInputChange}
-                  placeholder="f.eks. 2 år, 6 måneder"
-                  className="input-field"
-                />
+                <div className="grid grid-cols-2 gap-3">
+                  <label
+                    className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer transition-colors ${
+                      formData.needsCar === 'yes'
+                        ? 'border-primary-600 bg-primary-50 text-primary-700'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="needsCar"
+                      value="yes"
+                      checked={formData.needsCar === 'yes'}
+                      onChange={() => handleRadioChange('needsCar', 'yes')}
+                      className="sr-only"
+                    />
+                    <span className="text-lg">🚗</span>
+                    <span className="text-sm font-medium">Ja</span>
+                  </label>
+                  <label
+                    className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer transition-colors ${
+                      formData.needsCar === 'no'
+                        ? 'border-primary-600 bg-primary-50 text-primary-700'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="needsCar"
+                      value="no"
+                      checked={formData.needsCar === 'no'}
+                      onChange={() => handleRadioChange('needsCar', 'no')}
+                      className="sr-only"
+                    />
+                    <span className="text-lg">❌</span>
+                    <span className="text-sm font-medium">Nei</span>
+                  </label>
+                </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Språk du snakker
+                  Utstyr kreves
                 </label>
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    value={newLanguage}
-                    onChange={(e) => setNewLanguage(e.target.value)}
-                    placeholder="f.eks. Norsk"
-                    className="input-field flex-1"
-                  />
-                  <button
-                    type="button"
-                    onClick={addLanguage}
-                    className="btn-secondary px-4"
+                <div className="grid grid-cols-3 gap-3">
+                  <label
+                    className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer transition-colors ${
+                      formData.needsEquipment === 'yes'
+                        ? 'border-primary-600 bg-primary-50 text-primary-700'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
                   >
-                    <Plus className="w-4 h-4" />
-                  </button>
+                    <input
+                      type="radio"
+                      name="needsEquipment"
+                      value="yes"
+                      checked={formData.needsEquipment === 'yes'}
+                      onChange={() => handleRadioChange('needsEquipment', 'yes')}
+                      className="sr-only"
+                    />
+                    <span className="text-lg">🔧</span>
+                    <span className="text-sm font-medium">Ja</span>
+                  </label>
+                  <label
+                    className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer transition-colors ${
+                      formData.needsEquipment === 'some'
+                        ? 'border-primary-600 bg-primary-50 text-primary-700'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="needsEquipment"
+                      value="some"
+                      checked={formData.needsEquipment === 'some'}
+                      onChange={() => handleRadioChange('needsEquipment', 'some')}
+                      className="sr-only"
+                    />
+                    <span className="text-lg">🔨</span>
+                    <span className="text-sm font-medium">Noe utstyr</span>
+                  </label>
+                  <label
+                    className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer transition-colors ${
+                      formData.needsEquipment === 'no'
+                        ? 'border-primary-600 bg-primary-50 text-primary-700'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="needsEquipment"
+                      value="no"
+                      checked={formData.needsEquipment === 'no'}
+                      onChange={() => handleRadioChange('needsEquipment', 'no')}
+                      className="sr-only"
+                    />
+                    <span className="text-lg">❌</span>
+                    <span className="text-sm font-medium">Nei</span>
+                  </label>
                 </div>
-                {formData.languages.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {formData.languages.map((language, index) => (
-                      <span
-                        key={index}
-                        className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-primary-100 text-primary-800"
-                      >
-                        {language}
-                        <button
-                          type="button"
-                          onClick={() => removeLanguage(language)}
-                          className="ml-2"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
               </div>
-            </div>
-
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Sertifikater og kvalifikasjoner
-              </label>
-              <div className="flex space-x-2">
-                <input
-                  type="text"
-                  value={newCertification}
-                  onChange={(e) => setNewCertification(e.target.value)}
-                  placeholder="f.eks. Førstehjelpssertifikat"
-                  className="input-field flex-1"
-                />
-                <button
-                  type="button"
-                  onClick={addCertification}
-                  className="btn-secondary px-4"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-              </div>
-              {formData.certifications.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {formData.certifications.map((certification, index) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-secondary-100 text-secondary-800"
-                    >
-                      {certification}
-                      <button
-                        type="button"
-                        onClick={() => removeCertification(certification)}
-                        className="ml-2"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
 
-          {/* Availability */}
+          {/* Photos & Videos */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold mb-6">Tilgjengelighet</h2>
-            
-            <div className="space-y-4">
-              {Object.entries(formData.availability).map(([day, schedule]) => (
-                <div key={day} className="flex items-center space-x-4">
-                  <div className="w-24">
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={schedule.available}
-                        onChange={(e) => handleAvailabilityChange(day, 'available', e.target.checked)}
-                        className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                      />
-                      <span className="ml-2 font-medium capitalize">{day}</span>
-                    </label>
-                  </div>
-                  
-                  {schedule.available && (
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="time"
-                        value={schedule.start}
-                        onChange={(e) => handleAvailabilityChange(day, 'start', e.target.value)}
-                        className="input-field w-32"
-                      />
-                      <span>til</span>
-                      <input
-                        type="time"
-                        value={schedule.end}
-                        onChange={(e) => handleAvailabilityChange(day, 'end', e.target.value)}
-                        className="input-field w-32"
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Photos */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold mb-6">Bilder (valgfritt)</h2>
+            <h2 className="text-xl font-semibold mb-6">Bilder og videoer (valgfritt)</h2>
             
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
               <Upload className="mx-auto h-12 w-12 text-gray-400" />
               <div className="mt-4">
-                <p className="text-gray-600">
-                  Last opp bilder av ditt arbeid eller deg selv for å bygge tillit med kunder
+                <p className="text-gray-600 mb-4">
+                  Last opp bilder og videoer av ditt arbeid for å bygge tillit med kunder
                 </p>
-                <button
-                  type="button"
-                  className="mt-2 btn-primary"
+                <p className="text-sm text-gray-500 mb-4">
+                  Maksimal filstørrelse: 10MB. Støttede formater: JPG, PNG, GIF, MP4, MOV
+                </p>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*,video/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  id="file-upload"
+                />
+                <label
+                  htmlFor="file-upload"
+                  className="btn-primary cursor-pointer inline-block"
                 >
                   Velg filer
-                </button>
+                </label>
               </div>
             </div>
+
+            {/* File Preview */}
+            {files.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Valgte filer ({files.length})</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {files.map((file, index) => (
+                    <div key={index} className="relative group">
+                      <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                        {file.type.startsWith('image/') ? (
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt={file.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <video
+                            src={URL.createObjectURL(file)}
+                            className="w-full h-full object-cover"
+                            muted
+                          />
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeFile(index)}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                      <p className="text-xs text-gray-600 mt-1 truncate">{file.name}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {uploading && (
+              <div className="mt-4 text-center">
+                <div className="inline-flex items-center space-x-2 text-blue-600">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  <span>Laster opp filer...</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Submit */}
@@ -421,10 +592,10 @@ const CreateService = () => {
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || uploading}
               className="btn-primary px-8 py-3 text-lg"
             >
-              {loading ? 'Oppretter...' : 'Opprett tjeneste'}
+              {loading || uploading ? 'Oppretter...' : 'Opprett tjeneste'}
             </button>
           </div>
         </form>

@@ -161,7 +161,7 @@ const ServiceDetail = () => {
     languages: service.languages || [],
     certifications: service.certifications || [],
     availability: service.availability || {},
-    images: service.images || [],
+    files: service.files || [],
     createdAt: service.createdAt || new Date(),
     status: service.status || 'active'
   };
@@ -215,15 +215,31 @@ const ServiceDetail = () => {
                 </div>
               </div>
               
-              {safeService.images && safeService.images.length > 0 && (
-                <img
-                  src={safeService.images[0]}
-                  alt={safeService.title}
-                  className="w-full h-64 object-cover rounded-lg mb-6"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                  }}
-                />
+              {safeService.files && safeService.files.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold mb-4">Bilder og videoer</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {safeService.files.map((file, index) => (
+                      <div key={index} className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                        {file.type === 'image' ? (
+                          <img
+                            src={file.url}
+                            alt={file.name}
+                            className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                            onClick={() => window.open(file.url, '_blank')}
+                          />
+                        ) : (
+                          <video
+                            src={file.url}
+                            className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                            controls
+                            muted
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
               
               <div className="prose max-w-none">

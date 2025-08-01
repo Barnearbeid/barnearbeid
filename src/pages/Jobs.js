@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { collection, getDocs, query, orderBy, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Star, MapPin, Clock, Calendar, Plus } from 'lucide-react';
 
@@ -17,31 +17,10 @@ const Jobs = () => {
     try {
       const q = query(collection(db, 'jobs'), orderBy('createdAt', 'desc'));
       const querySnapshot = await getDocs(q);
-      const jobsData = await Promise.all(
-        querySnapshot.docs.map(async (doc) => {
-          const jobData = {
-            id: doc.id,
-            ...doc.data()
-          };
-          
-          // If job doesn't have providerName, fetch it from users collection
-          if (!jobData.providerName && jobData.userId) {
-            try {
-              const userDoc = await getDoc(doc(db, 'users', jobData.userId));
-              if (userDoc.exists()) {
-                jobData.providerName = userDoc.data().name;
-              } else {
-                jobData.providerName = 'Ukjent tilbyder';
-              }
-            } catch (error) {
-              console.error('Error fetching user name:', error);
-              jobData.providerName = 'Ukjent tilbyder';
-            }
-          }
-          
-          return jobData;
-        })
-      );
+      const jobsData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
       setJobs(jobsData);
     } catch (error) {
       console.error('Error fetching jobs:', error);
@@ -52,13 +31,24 @@ const Jobs = () => {
 
   const getCategoryIcon = (category) => {
     const icons = {
+      'grass-cutting': '🌿',
+      'weed-removal': '🌱',
+      'bark-soil': '🪴',
+      'hedge-cutting': '🌳',
+      'garbage-disposal': '🗑️',
+      'pressure-washing': '💦',
       'cleaning': '🧹',
+      'window-washing': '🪟',
+      'heavy-lifting': '🏋️',
+      'painting': '🎨',
+      'staining': '🪵',
+      'repair': '🔧',
+      'organizing': '📦',
+      'car-washing': '🚗',
+      'snow-shoveling': '❄️',
+      'moving-help': '📦',
+      'salt-sand': '🧂',
       'pet-care': '🐕',
-      'tutoring': '📚',
-      'gardening': '🌱',
-      'tech-help': '💻',
-      'babysitting': '👶',
-      'cooking': '👨‍🍳',
       'other': '✨'
     };
     return icons[category] || '✨';
@@ -66,19 +56,36 @@ const Jobs = () => {
 
   const getCategoryName = (category) => {
     const names = {
-      'cleaning': 'Husarbeid',
+      'grass-cutting': 'Klippe gress',
+      'weed-removal': 'Fjerne ugress',
+      'bark-soil': 'Legge bark eller ny jord',
+      'hedge-cutting': 'Klippe hekk',
+      'garbage-disposal': 'Kjøre søppel',
+      'pressure-washing': 'Spyle',
+      'cleaning': 'Rengjøre',
+      'window-washing': 'Vaske vinduer',
+      'heavy-lifting': 'Bærejobb',
+      'painting': 'Male',
+      'staining': 'Beise',
+      'repair': 'Reparere',
+      'organizing': 'Rydde',
+      'car-washing': 'Vaske bilen',
+      'snow-shoveling': 'Snømåking',
+      'moving-help': 'Hjelpe med flytting',
+      'salt-sand': 'Strø med sand / salt',
       'pet-care': 'Dyrepass',
-      'tutoring': 'Undervisning',
-      'gardening': 'Hagearbeid',
-      'tech-help': 'Teknisk hjelp',
-      'babysitting': 'Barnepass',
-      'cooking': 'Matlaging',
       'other': 'Annet'
     };
     return names[category] || 'Annet';
   };
 
-  const filteredJobs = filter === 'all' ? jobs : jobs.filter(job => job.category === filter);
+  const filteredJobs = filter === 'all' ? jobs : jobs.filter(job => {
+    // Handle both old jobs with 'category' and new jobs with 'categories'
+    if (job.categories && Array.isArray(job.categories)) {
+      return job.categories.includes(filter);
+    }
+    return job.category === filter;
+  });
 
   if (loading) {
     return (
@@ -122,6 +129,36 @@ const Jobs = () => {
               Alle
             </button>
             <button
+              onClick={() => setFilter('grass-cutting')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                filter === 'grass-cutting' 
+                  ? 'bg-primary-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              🌿 Klippe gress
+            </button>
+            <button
+              onClick={() => setFilter('weed-removal')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                filter === 'weed-removal' 
+                  ? 'bg-primary-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              🌱 Fjerne ugress
+            </button>
+            <button
+              onClick={() => setFilter('hedge-cutting')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                filter === 'hedge-cutting' 
+                  ? 'bg-primary-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              🌳 Klippe hekk
+            </button>
+            <button
               onClick={() => setFilter('cleaning')}
               className={`px-4 py-2 rounded-lg text-sm font-medium ${
                 filter === 'cleaning' 
@@ -129,37 +166,67 @@ const Jobs = () => {
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              🧹 Husarbeid
+              🧹 Rengjøre
             </button>
             <button
-              onClick={() => setFilter('tutoring')}
+              onClick={() => setFilter('window-washing')}
               className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                filter === 'tutoring' 
+                filter === 'window-washing' 
                   ? 'bg-primary-600 text-white' 
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              📚 Undervisning
+              🪟 Vaske vinduer
             </button>
             <button
-              onClick={() => setFilter('babysitting')}
+              onClick={() => setFilter('heavy-lifting')}
               className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                filter === 'babysitting' 
+                filter === 'heavy-lifting' 
                   ? 'bg-primary-600 text-white' 
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              👶 Barnepass
+              🏋️ Bærejobb
             </button>
             <button
-              onClick={() => setFilter('gardening')}
+              onClick={() => setFilter('painting')}
               className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                filter === 'gardening' 
+                filter === 'painting' 
                   ? 'bg-primary-600 text-white' 
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              🌱 Hagearbeid
+              🎨 Male
+            </button>
+            <button
+              onClick={() => setFilter('car-washing')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                filter === 'car-washing' 
+                  ? 'bg-primary-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              🚗 Vaske bilen
+            </button>
+            <button
+              onClick={() => setFilter('snow-shoveling')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                filter === 'snow-shoveling' 
+                  ? 'bg-primary-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              ❄️ Snømåking
+            </button>
+            <button
+              onClick={() => setFilter('moving-help')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                filter === 'moving-help' 
+                  ? 'bg-primary-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              📦 Hjelpe med flytting
             </button>
           </div>
         </div>
@@ -197,10 +264,19 @@ const Jobs = () => {
                 
                 <div className="flex items-start justify-between mb-3">
                   <h3 className="text-xl font-semibold text-gray-900">{job.title}</h3>
-                  <span className="text-2xl">{getCategoryIcon(job.category)}</span>
+                  <div className="flex space-x-1">
+                    {job.categories && Array.isArray(job.categories) ? (
+                      job.categories.slice(0, 2).map((cat, index) => (
+                        <span key={index} className="text-lg">{getCategoryIcon(cat)}</span>
+                      ))
+                    ) : (
+                      <span className="text-2xl">{getCategoryIcon(job.category)}</span>
+                    )}
+                    {job.categories && job.categories.length > 2 && (
+                      <span className="text-sm text-gray-500">+{job.categories.length - 2}</span>
+                    )}
+                  </div>
                 </div>
-                
-                <p className="text-gray-600 mb-2">av {job.providerName || 'Ukjent tilbyder'}</p>
                 
                 <p className="text-gray-600 mb-4 line-clamp-2">{job.description}</p>
                 

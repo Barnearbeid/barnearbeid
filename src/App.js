@@ -5,9 +5,6 @@ import Footer from './components/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
 import Home from './pages/Home';
 import Services from './pages/Services';
-import Jobs from './pages/Jobs';
-import CreateJob from './pages/CreateJob';
-import JobDetail from './pages/JobDetail';
 import Profile from './pages/Profile';
 import CreateService from './pages/CreateService';
 import ServiceDetail from './pages/ServiceDetail';
@@ -23,9 +20,6 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/services" element={<Services />} />
               <Route path="/services/:id" element={<ServiceDetail />} />
-              <Route path="/jobs" element={<Jobs />} />
-              <Route path="/jobs/:id" element={<JobDetail />} />
-              <Route path="/create-job" element={<CreateJob />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/create-service" element={<CreateService />} />
             </Routes>

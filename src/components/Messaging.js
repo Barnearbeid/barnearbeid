@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, query, where, orderBy, onSnapshot, getDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, query, where, orderBy, onSnapshot, getDoc, getDocs, doc, updateDoc, writeBatch } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { Send, MessageCircle, X } from 'lucide-react';
 
@@ -12,8 +12,37 @@ const Messaging = ({ targetUserId, targetUserName, onClose }) => {
   useEffect(() => {
     if (auth.currentUser && targetUserId) {
       loadMessages();
+      markMessagesAsRead();
     }
   }, [targetUserId]);
+
+  const markMessagesAsRead = async () => {
+    if (!auth.currentUser || !targetUserId) return;
+
+    try {
+      // Query for unread messages from this specific user
+      const q = query(
+        collection(db, 'messages'),
+        where('fromUserId', '==', targetUserId),
+        where('toUserId', '==', auth.currentUser.uid),
+        where('read', '==', false)
+      );
+
+      const snapshot = await getDocs(q);
+      
+      if (!snapshot.empty) {
+        const batch = writeBatch(db);
+        
+        snapshot.docs.forEach((doc) => {
+          batch.update(doc.ref, { read: true });
+        });
+        
+        await batch.commit();
+      }
+    } catch (error) {
+      console.error('Error marking messages as read:', error);
+    }
+  };
 
   const loadMessages = () => {
     // Query for messages between these two users (both directions)

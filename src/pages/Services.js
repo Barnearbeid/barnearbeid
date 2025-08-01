@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Search, Filter, Star, MapPin, Clock, User, Briefcase, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Filter, Star, MapPin, Clock, User, Briefcase, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -17,12 +17,17 @@ const Services = () => {
 
   const categories = useMemo(() => [
     { id: 'all', name: 'Alle kategorier' },
-    { id: 'cleaning', name: 'Rengjøring' },
-    { id: 'pet-care', name: 'Dyrepass' },
-    { id: 'tutoring', name: 'Undervisning' },
-    { id: 'gardening', name: 'Hagearbeid' },
-    { id: 'tech-help', name: 'Teknisk hjelp' },
-    { id: 'babysitting', name: 'Barnepass' }
+    { id: 'grass-cutting', name: 'Klippe gress' },
+    { id: 'weed-removal', name: 'Fjerne ugress' },
+    { id: 'hedge-cutting', name: 'Klippe hekk' },
+    { id: 'cleaning', name: 'Rengjøre' },
+    { id: 'window-washing', name: 'Vaske vinduer' },
+    { id: 'heavy-lifting', name: 'Bærejobb' },
+    { id: 'painting', name: 'Male' },
+    { id: 'car-washing', name: 'Vaske bilen' },
+    { id: 'snow-shoveling', name: 'Snømåking' },
+    { id: 'moving-help', name: 'Hjelpe med flytting' },
+    { id: 'pet-care', name: 'Dyrepass' }
   ], []);
 
   useEffect(() => {
@@ -55,7 +60,13 @@ const Services = () => {
       const matchesSearch = service.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          service.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          service.providerName?.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = selectedCategory === 'all' || service.category === selectedCategory;
+      
+      // Handle both old services with 'category' and new services with 'categories'
+      const matchesCategory = selectedCategory === 'all' || 
+        (service.categories && Array.isArray(service.categories) 
+          ? service.categories.includes(selectedCategory)
+          : service.category === selectedCategory);
+      
       return matchesSearch && matchesCategory;
     });
   }, [services, searchTerm, selectedCategory]);
@@ -213,16 +224,18 @@ const Services = () => {
                   to={`/services/${service.id}`}
                   className="card hover:shadow-xl transition-shadow duration-200"
                 >
-                  {service.images && service.images.length > 0 && (
+                  {service.files && service.files.length > 0 && service.files[0].type === 'image' && (
                     <img
-                      src={service.images[0]}
+                      src={service.files[0].url}
                       alt={service.title}
                       className="w-full h-48 object-cover rounded-lg mb-4"
                     />
                   )}
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="text-xl font-semibold text-gray-900">{service.title}</h3>
-                    <span className="text-lg font-semibold text-primary-600">{service.price} kr</span>
+                    <span className="text-lg font-semibold text-primary-600">
+                      {service.pricingType === 'hourly' ? `${service.price} kr/time` : `${service.price} kr`}
+                    </span>
                   </div>
                   
                   {/* Provider info with user type */}
@@ -254,9 +267,47 @@ const Services = () => {
                     </div>
                   </div>
                   
-                  <div className="mt-3 flex items-center text-sm text-green-600">
-                    <Clock className="w-4 h-4 mr-1" />
-                    Tilgjengelig nå
+                  <div className="mt-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center text-sm text-green-600">
+                        <Clock className="w-4 h-4 mr-1" />
+                        Tilgjengelig nå
+                      </div>
+                      <div className="flex items-center text-sm text-gray-600">
+                        {service.jobType === 'recurring' ? (
+                          <>
+                            <span className="text-lg mr-1">🔄</span>
+                            <span>Gjentakende</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-lg mr-1">🔨</span>
+                            <span>Engangsjobb</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-sm text-gray-600">
+                      <div className="flex items-center">
+                        {service.needsCar === 'yes' && (
+                          <span className="mr-3">🚗 Bil kreves</span>
+                        )}
+                        {service.needsEquipment === 'yes' && (
+                          <span>🔧 Utstyr kreves</span>
+                        )}
+                        {service.needsEquipment === 'some' && (
+                          <span>🔨 Noe utstyr</span>
+                        )}
+                      </div>
+                      <div className="flex items-center">
+                        {service.pricingType === 'hourly' ? (
+                          <span>⏰ {service.price} kr/time</span>
+                        ) : (
+                          <span>💰 {service.price} kr</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </Link>
               ))}

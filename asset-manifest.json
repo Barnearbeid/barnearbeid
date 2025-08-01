@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/barnearbeid/static/css/main.cf7da789.css",
-    "main.js": "/barnearbeid/static/js/main.9ca29eec.js",
+    "main.css": "/barnearbeid/static/css/main.578b7343.css",
+    "main.js": "/barnearbeid/static/js/main.58bdc360.js",
     "index.html": "/barnearbeid/index.html",
-    "main.cf7da789.css.map": "/barnearbeid/static/css/main.cf7da789.css.map",
-    "main.9ca29eec.js.map": "/barnearbeid/static/js/main.9ca29eec.js.map"
+    "main.578b7343.css.map": "/barnearbeid/static/css/main.578b7343.css.map",
+    "main.58bdc360.js.map": "/barnearbeid/static/js/main.58bdc360.js.map"
   },
   "entrypoints": [
-    "static/css/main.cf7da789.css",
-    "static/js/main.9ca29eec.js"
+    "static/css/main.578b7343.css",
+    "static/js/main.58bdc360.js"
   ]
 }
